@@ -3,6 +3,6 @@ module org.example.decisiontreemail {
     requires javafx.fxml;
 
 
-    opens org.example.decisiontreemail to javafx.fxml;
-    exports org.example.decisiontreemail;
+    opens view to javafx.fxml;
+    exports view;
 }
