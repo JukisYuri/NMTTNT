@@ -1,24 +1,14 @@
 package model;
 
 public class EmailData {
-    private String label;
     private int featureFree;
     private int featureStrangeLink;
     private int featureUpperCase;
 
-    public EmailData(String label, int featureFree, int featureStrangeLink, int featureUpperCase) {
-        this.label = label;
+    public EmailData(int featureFree, int featureStrangeLink, int featureUpperCase) {
         this.featureFree = featureFree;
         this.featureStrangeLink = featureStrangeLink;
         this.featureUpperCase = featureUpperCase;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
     }
 
     public int getFeatureFree() {
