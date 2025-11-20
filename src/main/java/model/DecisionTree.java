@@ -1,5 +1,6 @@
 package model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DecisionTree {
@@ -73,8 +74,37 @@ public class DecisionTree {
      *   có thể map tên attribute sang field tương ứng.
      */
     public double calculateInformationGain(List<EmailData> data, String attributeToCheck) {
-        // TODO: implement theo comment ở trên
-        return 0.0;
+        if (data.isEmpty()) {
+            return 0.0;
+        }
+
+        // Tính entropy
+        double calculateEntropy = calculateEntropy(data);
+
+        // Chia thành 2 tập con
+        List<EmailData> s_yes = new ArrayList<>();
+        List<EmailData> s_no = new ArrayList<>();
+
+        for (EmailData emailData : data) {
+            if (emailData.getAttributeValue(attributeToCheck) == 1) {
+                s_yes.add(emailData);
+            } else {
+                s_no.add(emailData);
+            }
+        }
+
+        // Tính entropy của từng tập
+
+        double entropy_yes = calculateEntropy(s_yes);
+        double entropy_no = calculateEntropy(s_no);
+
+        // Tính weighted entropy sau khi chia
+        int totalDataSize = data.size();
+        double weightedEntropy = ((double) s_yes.size() / totalDataSize) * entropy_yes +
+                ((double) s_no.size() / totalDataSize) * entropy_no;
+
+        // Information Gain = H(s) - H(sau chia)
+        return calculateEntropy - weightedEntropy;
     }
 
     /**
