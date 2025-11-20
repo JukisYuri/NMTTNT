@@ -19,8 +19,38 @@ public class DecisionTree {
      *   cần thêm trường isSpam vào EmailData hoặc truyền nhãn qua tham số khác.
      */
     public double calculateEntropy(List<EmailData> data) {
-        // TODO: implement theo comment ở trên
-        return 0.0;
+        if (data.isEmpty()) {
+            return 0.0;
+        }
+
+        int totalDataSize = data.size();
+        int spamCount = 0;
+        int hamCount = 0;
+
+        // Đếm spam và ham
+        for (EmailData emailData : data) {
+            if (emailData.getSpam() != null && emailData.getSpam()) {
+                spamCount++;
+            } else {
+                hamCount++;
+            }
+        }
+
+        // Tính xác suất xuất hiện
+        double p_spam = (double) spamCount / (double) totalDataSize;
+        double p_ham = (double) hamCount / (double) totalDataSize;
+
+        double entropy = 0;
+
+        // entropy = -p_spam * log2(p_spam) - p_ham * log2(p_ham)
+        if (p_spam > 0) {
+            entropy -= p_spam * (Math.log(p_spam) / Math.log(2));
+        }
+        if (p_ham > 0) {
+            entropy -= p_ham * (Math.log(p_ham) / Math.log(2));
+        }
+
+        return entropy;
     }
 
     /**
