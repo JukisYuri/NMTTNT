@@ -33,9 +33,11 @@ public class EmailData {
      */
     public int getAttributeValue(String attributeName) {
         return switch (attributeName) {
-            case "free" -> featureSuspiciousWords;
+            case "suspiciousWords" -> featureSuspiciousWords;
             case "strangeLink" -> featureStrangeLink;
             case "upperCase" -> featureUpperCase;
+            case "length" -> featureHowLongDescription;
+            case "specialChar" -> featureSpecialChar;
             default -> 0;
         };
     }
