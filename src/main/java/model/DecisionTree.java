@@ -1,5 +1,6 @@
 package model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DecisionTree {
@@ -19,8 +20,38 @@ public class DecisionTree {
      *   cần thêm trường isSpam vào EmailData hoặc truyền nhãn qua tham số khác.
      */
     public double calculateEntropy(List<EmailData> data) {
-        // TODO: implement theo comment ở trên
-        return 0.0;
+        if (data.isEmpty()) {
+            return 0.0;
+        }
+
+        int totalDataSize = data.size();
+        int spamCount = 0;
+        int hamCount = 0;
+
+        // Đếm spam và ham
+        for (EmailData emailData : data) {
+            if (emailData.getSpam() != null && emailData.getSpam()) {
+                spamCount++;
+            } else {
+                hamCount++;
+            }
+        }
+
+        // Tính xác suất xuất hiện
+        double p_spam = (double) spamCount / (double) totalDataSize;
+        double p_ham = (double) hamCount / (double) totalDataSize;
+
+        double entropy = 0;
+
+        // entropy = -p_spam * log2(p_spam) - p_ham * log2(p_ham)
+        if (p_spam > 0) {
+            entropy -= p_spam * (Math.log(p_spam) / Math.log(2));
+        }
+        if (p_ham > 0) {
+            entropy -= p_ham * (Math.log(p_ham) / Math.log(2));
+        }
+
+        return entropy;
     }
 
     /**
@@ -43,8 +74,37 @@ public class DecisionTree {
      *   có thể map tên attribute sang field tương ứng.
      */
     public double calculateInformationGain(List<EmailData> data, String attributeToCheck) {
-        // TODO: implement theo comment ở trên
-        return 0.0;
+        if (data.isEmpty()) {
+            return 0.0;
+        }
+
+        // Tính entropy
+        double calculateEntropy = calculateEntropy(data);
+
+        // Chia thành 2 tập con
+        List<EmailData> s_yes = new ArrayList<>();
+        List<EmailData> s_no = new ArrayList<>();
+
+        for (EmailData emailData : data) {
+            if (emailData.getAttributeValue(attributeToCheck) == 1) {
+                s_yes.add(emailData);
+            } else {
+                s_no.add(emailData);
+            }
+        }
+
+        // Tính entropy của từng tập
+
+        double entropy_yes = calculateEntropy(s_yes);
+        double entropy_no = calculateEntropy(s_no);
+
+        // Tính weighted entropy sau khi chia
+        int totalDataSize = data.size();
+        double weightedEntropy = ((double) s_yes.size() / totalDataSize) * entropy_yes +
+                ((double) s_no.size() / totalDataSize) * entropy_no;
+
+        // Information Gain = H(s) - H(sau chia)
+        return calculateEntropy - weightedEntropy;
     }
 
     /**
