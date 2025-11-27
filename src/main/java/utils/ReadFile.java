@@ -1,6 +1,5 @@
 package utils;
 
-import controller.ContainFeaturesCheck;
 import model.EmailData;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -20,11 +19,17 @@ public class ReadFile {
     List<EmailData> dataList = new ArrayList<>();
     ContainFeaturesCheck featuresCheck = new ContainFeaturesCheck();
 
-    private final String[] conditionInputFree = {
-            "free", "limited time", "offer", "special offer", "buy now", "discount", "deal", "save", "promotion", "congratulations", "winner"
+    private final String[] conditionInputSuspiciousWords = {
+            "free", "limited time", "offer", "special offer", "buy now", "discount", "deal", "save", "promotion", "congratulations", "winner", "following", "copy"
     };
     private final String[] conditionInputStrangeLink = {
-            "http://", "https://", "click here", "bit.ly/", "tinyurl.com", "goo.gl/"
+            "http://", "https://", "click here", "bit.ly/", "tinyurl.com", "goo.gl/", "gg.gg", "t.co", "cutt.ly", "is.gd", "ouo.io"
+    };
+    private final String[] conditionSpecialChar = {
+            "!", "@", "#", "$", "%", "&", "*",
+            "?", "...", "-",
+            "★", "☆", "£", "¢", "€", "¥",
+            "✓", "✔", "✖", "→", "⇒"
     };
 
     /**
@@ -101,19 +106,18 @@ public class ReadFile {
         } else {
             isSpam = null;
         }
-        int featureFree = featuresCheck.containsWord(text, conditionInputFree);
+        int featureSuspiciousWords = featuresCheck.containsWord(text, conditionInputSuspiciousWords);
         int featureStrangeLink = featuresCheck.containsWord(text, conditionInputStrangeLink);
         int featureUpperCase = featuresCheck.containsUpperCase(text);
+        int featureSpecialChar = featuresCheck.containSpecialChar(text, conditionSpecialChar);
+        int featureHowLongDescription = featuresCheck.howLongDescription(text);
         if (isSpam != null) {
-            return new EmailData(featureFree, featureStrangeLink, featureUpperCase, isSpam);
+            return new EmailData(featureSuspiciousWords, featureStrangeLink, featureUpperCase, featureHowLongDescription, featureSpecialChar, isSpam);
         } else {
-            return new EmailData(featureFree, featureStrangeLink, featureUpperCase);
+            return new EmailData(featureSuspiciousWords, featureStrangeLink, featureUpperCase, featureHowLongDescription, featureSpecialChar);
         }
     }
 
-    /**
-     * Lấy giá trị trường theo tên một cách an toàn từ record; trả về empty string nếu không có.
-     */
     private String safeGet(CSVRecord record, String name) {
         try {
             if (record.isSet(name)) {
@@ -134,9 +138,13 @@ public class ReadFile {
         ReadFile rf = new ReadFile();
         rf.readFromPath();
         System.out.println("Đọc được " + rf.getDataList().size() + " bản ghi.");
-        int limit = Math.min(10, rf.getDataList().size());
+        int limit = Math.min(50, rf.getDataList().size());
         for (int i = 0; i < limit; i++) {
             System.out.println(rf.getDataList().get(i));
         }
+
+//        ContainFeaturesCheck containFeaturesCheck = new ContainFeaturesCheck();
+//        String text = "Hello!!! @";
+//        System.out.println(containFeaturesCheck.containSpecialChar(text, rf.conditionSpecialChar));
     }
 }

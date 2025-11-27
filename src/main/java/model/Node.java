@@ -11,4 +11,44 @@ public class Node {
 
     public Node() {
     }
+
+    public boolean isLeaf() {
+        return isLeaf;
+    }
+
+    public void setLeaf(boolean leaf) {
+        isLeaf = leaf;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
+    public String getSplitAttribute() {
+        return splitAttribute;
+    }
+
+    public void setSplitAttribute(String splitAttribute) {
+        this.splitAttribute = splitAttribute;
+    }
+
+    public Node getLeftChild() {
+        return leftChild;
+    }
+
+    public void setLeftChild(Node leftChild) {
+        this.leftChild = leftChild;
+    }
+
+    public Node getRightChild() {
+        return rightChild;
+    }
+
+    public void setRightChild(Node rightChild) {
+        this.rightChild = rightChild;
+    }
 }
