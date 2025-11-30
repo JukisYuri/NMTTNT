@@ -1,20 +1,24 @@
-package controller;
+package utils;
 
-import model.DecisionTree;
 import model.EmailData;
-import model.Node;
-import utils.ContainFeaturesCheck;
-import utils.ReadFile;
-import view.MailFilterFrame;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
-import java.io.IOException;
-import java.util.Arrays;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
-public class SpamController {
-    MailFilterFrame view = new MailFilterFrame();
-    DecisionTree model = new DecisionTree();
+/**
+ * Đọc file CSV sử dụng Apache Commons CSV.
+ * Lưu ý thêm dependency vào project:
+ */
+public class ReadFile {
+    String path = "src/main/java/datasets/spam_assassin.csv";
+    List<EmailData> dataList = new ArrayList<>();
     ContainFeaturesCheck featuresCheck = new ContainFeaturesCheck();
+
     private final String[] conditionInputSuspiciousWords = {
             "free", "limited time", "offer", "special offer", "buy now", "discount", "deal", "save", "promotion", "congratulations", "winner", "following", "copy"
     };
@@ -28,58 +32,119 @@ public class SpamController {
             "✓", "✔", "✖", "→", "⇒"
     };
 
-    public SpamController(MailFilterFrame view, DecisionTree model) {
-        this.view = view;
-        this.model = model;
+    /**
+     * Đọc file CSV theo đường dẫn truyền vào.
+     */
+    public void readFromPath() throws IOException {
+        if (path == null || path.isBlank()) {
+            throw new IllegalArgumentException("The file path is null or empty.");
+        }
+        File file = new File(path);
+        if (!file.exists() || !file.isFile()) {
+            throw new FileNotFoundException("The file does not exist or is not a valid file: " + path);
+        }
+        dataList.clear();
+        try (Reader reader = new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8)) {
+            CSVParser parser = CSVFormat.DEFAULT
+                    .withFirstRecordAsHeader()
+                    .withIgnoreSurroundingSpaces()
+                    .withTrim()
+                    .parse(reader);
+
+            boolean hasHeaderText = parser.getHeaderMap().containsKey("text");
+            boolean hasHeaderTarget = parser.getHeaderMap().containsKey("target") || parser.getHeaderMap().containsKey("label");
+
+            for (CSVRecord record : parser) {
+                String rawText;
+                String rawTarget;
+
+                if (hasHeaderText) {
+                    rawText = safeGet(record, "text");
+                } else if (parser.getHeaderMap().containsKey("content")) {
+                    rawText = safeGet(record, "content");
+                } else if (parser.getHeaderMap().containsKey("message")) {
+                    rawText = safeGet(record, "message");
+                } else {
+                    rawText = record.size() > 0 ? record.get(0) : "";
+                }
+
+                if (hasHeaderTarget) {
+                    if (parser.getHeaderMap().containsKey("target")) {
+                        rawTarget = safeGet(record, "target");
+                    } else if (parser.getHeaderMap().containsKey("label")) {
+                        rawTarget = safeGet(record, "label");
+                    } else {
+                        rawTarget = "";
+                    }
+                } else {
+                    rawTarget = record.size() > 1 ? record.get(1) : "";
+                }
+
+                if (rawText == null) rawText = "";
+                if (rawTarget == null) rawTarget = "";
+
+                EmailData emailData = createEmailDataFromRaw(rawText, rawTarget);
+                dataList.add(emailData);
+            }
+        }
     }
 
     /**
-     * Gọi khi muốn khởi tạo pipeline: đọc dữ liệu và build cây
+     * Tạo EmailData từ rawText và rawTarget (lấy features, set label).
      */
-    public void initializeModelFromDataset() throws IOException {
-        // 1. Dùng utils.ReadFile để đọc dataList
-        // 2. Xác định danh sách attributes: List<String> attributes = Arrays.asList("free","strangeLink","upperCase");
-        // 3. Node root = model.buildTree(dataList, attributes);
-        // 4. model.setRoot(root);
+    private EmailData createEmailDataFromRaw(String rawText, String rawTarget) {
+        String text = rawText.trim();
+        String target = rawTarget.trim();
+
+        // Xác định isSpam: hỗ trợ "spam"/"ham" theo "1"/"0"
+        Boolean isSpam;
+        String t = target.toLowerCase();
+        if (t.equals("1") || t.equals("spam") || t.equals("true") || t.equals("yes")) {
+            isSpam = true;
+        } else if (t.equals("0") || t.equals("ham") || t.equals("not spam") || t.equals("false") || t.equals("no")) {
+            isSpam = false;
+        } else {
+            isSpam = null;
+        }
+        int featureSuspiciousWords = featuresCheck.containsWord(text, conditionInputSuspiciousWords);
+        int featureStrangeLink = featuresCheck.containsWord(text, conditionInputStrangeLink);
+        int featureUpperCase = featuresCheck.containsUpperCase(text);
+        int featureSpecialChar = featuresCheck.containSpecialChar(text, conditionSpecialChar);
+        int featureHowLongDescription = featuresCheck.howLongDescription(text);
+        if (isSpam != null) {
+            return new EmailData(featureSuspiciousWords, featureStrangeLink, featureUpperCase, featureHowLongDescription, featureSpecialChar, isSpam);
+        } else {
+            return new EmailData(featureSuspiciousWords, featureStrangeLink, featureUpperCase, featureHowLongDescription, featureSpecialChar);
+        }
+    }
+
+    private String safeGet(CSVRecord record, String name) {
         try {
-            ReadFile readFile = new ReadFile();
-            readFile.readFromPath();
-            List<EmailData> dataList = readFile.getDataList();
-            if (dataList.isEmpty()) {
-                return;
+            if (record.isSet(name)) {
+                return record.get(name);
             }
-            List<String> attributes = Arrays.asList("free","strangeLink","upperCase");
-            Node root = model.buildTree(dataList, attributes);
-            model.setRoot(root);
-        } catch (IOException e) {
-            System.err.println("Can't read data list");
-            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            System.err.println("Warning: Unable to get value for field '" + name + "'. " + e.getMessage());
+        }
+        return "";
+    }
+
+
+    public List<EmailData> getDataList() {
+        return dataList;
+    }
+
+    public static void main(String[] args) throws IOException {
+        ReadFile rf = new ReadFile();
+        rf.readFromPath();
+        System.out.println("Đọc được " + rf.getDataList().size() + " bản ghi.");
+        int limit = Math.min(50, rf.getDataList().size());
+        for (int i = 0; i < limit; i++) {
+            System.out.println(rf.getDataList().get(i));
         }
 
+//        ContainFeaturesCheck containFeaturesCheck = new ContainFeaturesCheck();
+//        String text = "Hello!!! @";
+//        System.out.println(containFeaturesCheck.containSpecialChar(text, rf.conditionSpecialChar));
     }
-
-    /**
-     * Gọi khi người dùng submit 1 email mới:
-     * - Convert subject+content -> EmailData (features)
-     * - String label = model.classify(email)
-     * - String[] explain = model.explainClassification(email)
-     * - Update view tương ứng (hiển thị label, explain)
-     */
-    public void checkEmailAndUpdateView(String subject, String content) {
-        // subject + content
-        String fullText = subject + " " + content;
-        ReadFile readFile = new ReadFile();
-
-        int featureSuspiciousWords = featuresCheck.containsWord(fullText,conditionInputSuspiciousWords);
-        int featureStrangeLink = featuresCheck.containsWord(fullText,conditionInputStrangeLink);
-        int featureSpecialChar =  featuresCheck.containSpecialChar(fullText, conditionSpecialChar);
-        int featureUpperCase = featuresCheck.containsUpperCase(fullText);
-        int featureLongDescription = featuresCheck.howLongDescription(fullText);
-
-        EmailData email = new EmailData(featureSuspiciousWords,featureStrangeLink,featureUpperCase,featureSpecialChar,featureLongDescription);
-
-        String label = model.classify(email);
-        String[] explain = model.explainClassification(email);
-    }
-
 }
