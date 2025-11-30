@@ -8,6 +8,11 @@ public class EmailData {
     private int featureSpecialChar; // Tỉ lệ bao nhiêu kí tự đặc biệt
     private Boolean isSpam;
 
+    // Color
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+
     public EmailData(int featureFree, int featureStrangeLink, int featureUpperCase, int featureHowLongDescription, int featureSpecialChar) {
         this.featureSuspiciousWords = featureFree;
         this.featureStrangeLink = featureStrangeLink;
@@ -29,7 +34,6 @@ public class EmailData {
 
     /**
      * Helper: lấy giá trị của attribute theo tên (dùng khi tách data theo attribute).
-     * attributeName có thể là: "free", "strangeLink", "upperCase"
      */
     public int getAttributeValue(String attributeName) {
         return switch (attributeName) {
@@ -90,15 +94,22 @@ public class EmailData {
         this.featureSpecialChar = featureSpecialChar;
     }
 
+    public String colorIsSpam(){
+        if (isSpam == true) {
+            return ", isSpam=" + ANSI_RED + " " + isSpam + ANSI_RESET;
+        } else {
+            return ", isSpam=" + ANSI_GREEN + " " + isSpam + ANSI_RESET;
+        }
+    }
+
     @Override
     public String toString() {
         return "EmailData{" +
-                "featureSuspiciousWords=" + featureSuspiciousWords +
-                ", featureStrangeLink=" + featureStrangeLink +
-                ", featureUpperCase=" + featureUpperCase +
-                ", featureHowLongDescription=" + featureHowLongDescription +
-                ", featureSpecialChar=" + featureSpecialChar +
-                ", isSpam=" + isSpam +
-                '}';
+                "SuspiciousWords=" + featureSuspiciousWords +
+                ", StrangeLink=" + featureStrangeLink +
+                ", UpperCase=" + featureUpperCase +
+                ", HowLongDescription=" + featureHowLongDescription +
+                ", SpecialChar=" + featureSpecialChar +
+                colorIsSpam() + '}';
     }
 }

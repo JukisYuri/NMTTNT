@@ -152,8 +152,17 @@ public class DecisionTree {
      * - Nếu root == null => nên buildTree trước khi classify hoặc trả "unknown".
      */
     public String classify(EmailData email) {
-        // TODO: implement theo comment ở trên
-        return "unknown";
+        Node current = root;
+        while (!current.isLeaf()) {
+            String attr = current.getSplitAttribute();
+            int value = email.getAttributeValue(attr);
+            if (value == 1) {
+                current = current.getLeftChild();
+            } else {
+                current = current.getRightChild();
+            }
+        }
+        return current.getLabel();
     }
 
     /**
@@ -161,10 +170,10 @@ public class DecisionTree {
      *
      * Hướng dẫn triển khai:
      * - Khi classify, có thể thu thập các thuộc tính mà email khớp trên đường đi (ví dụ: chứa "miễn phí", có link lạ, nhiều chữ in hoa).
-     * - Trả về một chuỗi mô tả ngắn hoặc danh sách lý do (ví dụ: ["contains: free", "contains: https://shopee.vn/"]).
+     * - Trả về một chuỗi mô tả ngắn hoặc danh sách lý do
      *
      * Trả về:
-     * - Mảng String nơi phần tử 0 là "lý do" (reason), phần tử 1 là "những từ chú ý" (notice) — có thể đổi cấu trúc.
+     * - Mảng String nơi phần tử 0 là "lý do" (reason), phần tử 1 là "những từ chú ý" (notice)
      */
     public String[] explainClassification(EmailData email) {
         // TODO: implement to produce human-readable reasons and highlighted words

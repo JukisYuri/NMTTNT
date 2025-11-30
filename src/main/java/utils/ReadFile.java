@@ -11,8 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Đọc file CSV sử dụng Apache Commons CSV.
- * Lưu ý thêm dependency vào project:
+ * Đọc file CSV sử dụng Apache Commons CSV
  */
 public class ReadFile {
     String path = "src/main/java/datasets/spam_assassin.csv";
@@ -142,9 +141,5 @@ public class ReadFile {
         for (int i = 0; i < limit; i++) {
             System.out.println(rf.getDataList().get(i));
         }
-
-//        ContainFeaturesCheck containFeaturesCheck = new ContainFeaturesCheck();
-//        String text = "Hello!!! @";
-//        System.out.println(containFeaturesCheck.containSpecialChar(text, rf.conditionSpecialChar));
     }
 }
