@@ -1,6 +1,8 @@
 package view;
 
 import javafx.application.Application;
+
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -10,6 +12,10 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public class MailFilterFrame extends Application {
+    // Tạo thêm instance để lưu kết quả
+    private Label resultLabel;
+    private TextArea reasonArea;
+    private TextArea noticeArea;
 
     @Override
     public void start(Stage primaryStage) {
@@ -87,4 +93,33 @@ public class MailFilterFrame extends Application {
         primaryStage.show();
     }
 
+    //Đặt setter methods
+    public void setResultText(String text) {
+        if (resultLabel != null) {
+            Platform.runLater(() -> {
+                resultLabel.setText(text);
+                //Đổi màu thành đỏ nếu là spam
+                if (text.contains("spam")) {
+                    resultLabel.setTextFill(Color.RED);
+                } else if (text.contains("ham")) {
+                    //Xanh nếu ham
+                    resultLabel.setTextFill(Color.GREEN);
+                } else {
+                    //Còn lại xanh đậm
+                    resultLabel.setTextFill(Color.DARKBLUE);
+                }
+            });
+        }
+    }
+    public void setReasonText(String text) {
+        if (reasonArea != null) {
+            Platform.runLater(() -> reasonArea.setText(text));
+        }
+    }
+
+    public void setNoticeText(String text) {
+        if (noticeArea != null) {
+            Platform.runLater(() -> noticeArea.setText(text));
+        }
+    }
 }
