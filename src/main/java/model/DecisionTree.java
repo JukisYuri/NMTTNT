@@ -6,19 +6,6 @@ import java.util.List;
 public class DecisionTree {
     private Node root;
 
-    /**
-     * Tính Entropy cho một danh sách email.
-     *
-     * Hướng dẫn triển khai:
-     * 1. Tính Entropy(S). Ở bài toán này giả sử có 2 lớp: "spam" và "ham" (not spam).
-     * 2. Đếm số lượng email spam (n_spam) và ham (n_ham) trong danh sách data.
-     * 3. Tính p_spam = n_spam / N, p_ham = n_ham / N (bỏ qua các xác suất = 0 khi log).
-     * 4. Trả về kết quả entropy (double). Giá trị nằm trong [0, 1] (với log cơ số 2).
-     *
-     * Ghi chú:
-     * - EmailData phải có thông tin label (isSpam) để đếm được; nếu dataset chưa có label,
-     *   cần thêm trường isSpam vào EmailData hoặc truyền nhãn qua tham số khác.
-     */
     public double calculateEntropy(List<EmailData> data) {
         if (data.isEmpty()) {
             return 0.0;
@@ -54,25 +41,6 @@ public class DecisionTree {
         return entropy;
     }
 
-    /**
-     * Tính Information Gain (IG) cho một attribute (từ khóa) cụ thể.
-     *
-     * Hướng dẫn triển khai (giả sử attribute là nhị phân: 1 = có, 0 = không):
-     * 1. Tính entropy của tập cha H(S) = calculateEntropy(data).
-     * 2. Chia data thành hai tập con theo giá trị attribute:
-     *      S_yes  = emails có attribute = 1
-     *      S_no   = emails có attribute = 0
-     * 3. Tính entropy của từng tập con H(S_yes), H(S_no)
-     * 4. Tính entropy có điều kiện sau khi chia:
-     *      H_after = (|S_yes|/|S|) * H(S_yes) + (|S_no|/|S|) * H(S_no)
-     * 5. Information Gain = H(S) - H_after
-     * 6. Trả về giá trị IG (double). Giá trị càng lớn => attribute càng tốt để tách.
-     *
-     * Ghi chú:
-     * - attributeToCheck: tên thuộc tính như "free", "strangeLink", "upperCase" (tự định nghĩa).
-     * - EmailData cần có getter để trả về giá trị thuộc tính theo tên; nếu không có,
-     *   có thể map tên attribute sang field tương ứng.
-     */
     public double calculateInformationGain(List<EmailData> data, String attributeToCheck) {
         if (data.isEmpty()) {
             return 0.0;
@@ -137,20 +105,7 @@ public class DecisionTree {
         return null;
     }
 
-    /**
-     * Phân loại một EmailData bằng cây đã xây dựng.
-     *
-     * Hướng dẫn triển khai:
-     * 1. Bắt đầu từ root:
-     *    - Nếu node.isLeaf => trả về node.label
-     *    - Ngược lại, lấy giá trị thuộc tính splitAttribute từ email (0 hoặc 1)
-     *      nếu = 1 => đi vào leftChild (theo quy ước)
-     *      nếu = 0 => đi vào rightChild
-     * 2. Lặp đến khi gặp lá, trả về nhãn.
-     *
-     * Ghi chú:
-     * - Nếu root == null => nên buildTree trước khi classify hoặc trả "unknown".
-     */
+    /* Phân loại một EmailData bằng cây đã xây dựng */
     public String classify(EmailData email) {
         Node current = root;
         while (!current.isLeaf()) {
@@ -165,19 +120,57 @@ public class DecisionTree {
         return current.getLabel();
     }
 
-    /**
-     * Giải thích/thu thập "lý do" khi một email bị đánh dấu spam.
-     *
-     * Hướng dẫn triển khai:
-     * - Khi classify, có thể thu thập các thuộc tính mà email khớp trên đường đi (ví dụ: chứa "miễn phí", có link lạ, nhiều chữ in hoa).
-     * - Trả về một chuỗi mô tả ngắn hoặc danh sách lý do
-     *
-     * Trả về:
-     * - Mảng String nơi phần tử 0 là "lý do" (reason), phần tử 1 là "những từ chú ý" (notice)
-     */
     public String[] explainClassification(EmailData email) {
-        // TODO: implement to produce human-readable reasons and highlighted words
-        return new String[] {"", ""};
+        StringBuilder reasonTrace = new StringBuilder();
+        StringBuilder detectedFeatures = new StringBuilder();
+
+        Node current = root;
+        int step = 1;
+        // Duyệt từ gốc đến lá
+        while (!current.isLeaf()) {
+            // Lấy giá trị thuộc tính 0/1 trong email
+            String attr = current.getSplitAttribute();
+            int value = email.getAttributeValue(attr);
+            String attrNameVN = getAttributeNameVN(attr);
+            reasonTrace.append(step).append(". ");
+            if (value == 1) {
+                // Đi nhánh Trái
+                reasonTrace.append("Có chứa ").append(attrNameVN).append("\n");
+                // Thêm vào danh sách chú ý
+                if (!detectedFeatures.isEmpty()) detectedFeatures.append(", ");
+                detectedFeatures.append(attrNameVN);
+                // Di chuyển xuống con trái
+                if (current.getLeftChild() != null) {
+                    current = current.getLeftChild();
+                } else {
+                    break;
+                }
+            } else {
+                // Đi nhánh Phải
+                reasonTrace.append("Không chứa ").append(attrNameVN).append("\n");
+                // Di chuyển xuống con phải
+                if (current.getRightChild() != null) {
+                    current = current.getRightChild();
+                } else {
+                    break;
+                }
+            }
+            step++;
+        }
+        reasonTrace.append("=> ").append(current.getLabel());
+        return new String[]{reasonTrace.toString(), detectedFeatures.toString()};
+    }
+
+    private String getAttributeNameVN(String attribute) {
+        if (attribute == null) return "Unknown";
+        return switch (attribute) {
+            case "suspiciousWords" -> "Từ khóa quảng cáo/đáng ngờ";
+            case "strangeLink" -> "Đường dẫn (link) lạ";
+            case "upperCase" -> "Quá nhiều chữ in hoa";
+            case "longDescription" -> "Nội dung quá dài";
+            case "specialChar" -> "Nhiều ký tự đặc biệt";
+            default -> attribute;
+        };
     }
 
     // Getter/Setter cho root để có thể buildTree từ bên ngoài

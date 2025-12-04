@@ -10,25 +10,11 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import static utils.ContainFeaturesCheck.*;
+
 public class SpamController {
     MailFilterFrame view = new MailFilterFrame();
     DecisionTree model = new DecisionTree();
-    private final ContainFeaturesCheck featuresCheck = new ContainFeaturesCheck();
-
-    private final String[] conditionInputSuspiciousWords = {
-            "free", "limited time", "offer", "special offer", "buy now", "discount", "deal",
-            "save", "promotion", "congratulations", "winner", "following", "copy"
-    };
-    private final String[] conditionInputStrangeLink = {
-            "http://", "https://", "click here", "bit.ly/", "tinyurl.com", "goo.gl/", "gg.gg",
-            "t.co", "cutt.ly", "is.gd", "ouo.io"
-    };
-    private final String[] conditionSpecialChar = {
-            "!", "@", "#", "$", "%", "&", "*",
-            "?", "...", "-",
-            "★", "☆", "£", "¢", "€", "¥",
-            "✓", "✔", "✖", "→", "⇒"
-    };
 
     public SpamController(MailFilterFrame view, DecisionTree model) {
         this.view = view;
@@ -39,10 +25,6 @@ public class SpamController {
      * Gọi khi muốn khởi tạo pipeline: đọc dữ liệu và build cây
      */
     public void initializeModelFromDataset() {
-        // 1. Dùng utils.ReadFile để đọc dataList
-        // 2. Xác định danh sách attributes: List<String> attributes = Arrays.asList("free","strangeLink","upperCase");
-        // 3. Node root = model.buildTree(dataList, attributes);
-        // 4. model.setRoot(root);
         ReadFile rf = new ReadFile();
         try {
             rf.readFromPath();
@@ -67,10 +49,6 @@ public class SpamController {
 
     /**
      * Gọi khi người dùng submit 1 email mới:
-     * - Convert subject+content -> EmailData (features)
-     * - String label = model.classify(email)
-     * - String[] explain = model.explainClassification(email)
-     * - Update view tương ứng (hiển thị label, explain)
      */
     public void checkEmailAndUpdateView(String subject, String content) {
         // Xử lý input (tránh null)
@@ -79,18 +57,18 @@ public class SpamController {
         String text = (s + "\n" + c).trim();
 
         // Trích xuất các đặc trưng từ email
-        int featureSuspiciousWords = featuresCheck.containsWord(text, conditionInputSuspiciousWords);
-        int featureStrangeLink = featuresCheck.containsWord(text, conditionInputStrangeLink);
-        int featureUpperCase = featuresCheck.containsUpperCase(text);
-        int featureSpecialChar = featuresCheck.containSpecialChar(text, conditionSpecialChar);
-        int featureHowLongDescription = featuresCheck.howLongDescription(text);
+        int featureSuspiciousWords = ContainFeaturesCheck.containsSuspiciousWord(text);
+        int featureStrangeLink     = ContainFeaturesCheck.containsStrangeLink(text);
+        int featureUpperCase       = ContainFeaturesCheck.containsUpperCase(text);
+        int featureSpecialChar     = ContainFeaturesCheck.containsSpecialChar(text);
+        int featureLongDesc        = ContainFeaturesCheck.howLongDescription(text);
 
         // Tạo đối tượng EmailData với các features đã trích xuất
         EmailData email = new EmailData(
                 featureSuspiciousWords,
                 featureStrangeLink,
                 featureUpperCase,
-                featureHowLongDescription,
+                featureLongDesc,
                 featureSpecialChar
         );
 

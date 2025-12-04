@@ -10,26 +10,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import static utils.ContainFeaturesCheck.*;
+
 /**
  * Đọc file CSV sử dụng Apache Commons CSV
  */
 public class ReadFile {
     String path = "src/main/java/datasets/spam_assassin.csv";
     List<EmailData> dataList = new ArrayList<>();
-    ContainFeaturesCheck featuresCheck = new ContainFeaturesCheck();
-
-    private final String[] conditionInputSuspiciousWords = {
-            "free", "limited time", "offer", "special offer", "buy now", "discount", "deal", "save", "promotion", "congratulations", "winner", "following", "copy"
-    };
-    private final String[] conditionInputStrangeLink = {
-            "http://", "https://", "click here", "bit.ly/", "tinyurl.com", "goo.gl/", "gg.gg", "t.co", "cutt.ly", "is.gd", "ouo.io"
-    };
-    private final String[] conditionSpecialChar = {
-            "!", "@", "#", "$", "%", "&", "*",
-            "?", "...", "-",
-            "★", "☆", "£", "¢", "€", "¥",
-            "✓", "✔", "✖", "→", "⇒"
-    };
 
     /**
      * Đọc file CSV theo đường dẫn truyền vào.
@@ -105,15 +93,15 @@ public class ReadFile {
         } else {
             isSpam = null;
         }
-        int featureSuspiciousWords = featuresCheck.containsWord(text, conditionInputSuspiciousWords);
-        int featureStrangeLink = featuresCheck.containsWord(text, conditionInputStrangeLink);
-        int featureUpperCase = featuresCheck.containsUpperCase(text);
-        int featureSpecialChar = featuresCheck.containSpecialChar(text, conditionSpecialChar);
-        int featureHowLongDescription = featuresCheck.howLongDescription(text);
+        int featureSuspiciousWords = ContainFeaturesCheck.containsSuspiciousWord(text);
+        int featureStrangeLink     = ContainFeaturesCheck.containsStrangeLink(text);
+        int featureUpperCase       = ContainFeaturesCheck.containsUpperCase(text);
+        int featureSpecialChar     = ContainFeaturesCheck.containsSpecialChar(text);
+        int featureLongDesc        = ContainFeaturesCheck.howLongDescription(text);
         if (isSpam != null) {
-            return new EmailData(featureSuspiciousWords, featureStrangeLink, featureUpperCase, featureHowLongDescription, featureSpecialChar, isSpam);
+            return new EmailData(featureSuspiciousWords, featureStrangeLink, featureUpperCase, featureLongDesc, featureSpecialChar, isSpam);
         } else {
-            return new EmailData(featureSuspiciousWords, featureStrangeLink, featureUpperCase, featureHowLongDescription, featureSpecialChar);
+            return new EmailData(featureSuspiciousWords, featureStrangeLink, featureUpperCase, featureLongDesc, featureSpecialChar);
         }
     }
 

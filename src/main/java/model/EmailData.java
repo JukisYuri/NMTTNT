@@ -13,6 +13,7 @@ public class EmailData {
     public static final String ANSI_RED = "\u001B[31m";
     public static final String ANSI_GREEN = "\u001B[32m";
 
+    // Constructor này quan trọng với Controller
     public EmailData(int featureFree, int featureStrangeLink, int featureUpperCase, int featureHowLongDescription, int featureSpecialChar) {
         this.featureSuspiciousWords = featureFree;
         this.featureStrangeLink = featureStrangeLink;
@@ -22,7 +23,7 @@ public class EmailData {
         this.isSpam = null;
     }
 
-    // Nếu dataset có nhãn, dùng constructor này
+    // Nếu dataset có nhãn, dùng constructor này. Chủ yếu được dùng cho đọc file
     public EmailData(int featureFree, int featureStrangeLink, int featureUpperCase, int featureHowLongDescription, int featureSpecialChar, boolean isSpam) {
         this.featureSuspiciousWords = featureFree;
         this.featureStrangeLink = featureStrangeLink;
