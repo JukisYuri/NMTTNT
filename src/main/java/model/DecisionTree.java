@@ -76,33 +76,76 @@ public class DecisionTree {
     }
 
     /**
-     * Xây dựng cây quyết định (recursive).
-     *
-     * Hướng dẫn triển khai:
-     * 1. Base cases:
-     *    - Nếu tất cả email trong data đều cùng label (tất cả spam hoặc tất cả ham):
-     *        -> tạo Node lá với isLeaf = true, label = "spam" hoặc "ham"
-     *    - Nếu danh sách attributes rỗng (không còn thuộc tính để tách):
-     *        -> tạo Node lá với label là nhãn nhiều nhất (majority class) trong data
-     *    - Nếu data rỗng:
-     *        -> trả về Node lá với label là nhãn mặc định hoặc null
-     * 2. Nếu không phải base case:
-     *    - Với mỗi attribute trong attributes, tính IG = calculateInformationGain(data, attribute)
-     *    - Chọn attribute có IG lớn nhất (bestAttribute)
-     *    - Tạo Node hiện tại: node.splitAttribute = bestAttribute; node.isLeaf = false
-     *    - Chia data thành hai tập S_yes (attribute=1) và S_no (attribute=0)
-     *    - Gọi đệ quy:
-     *         node.leftChild = buildTree(S_yes, remainingAttributes)
-     *         node.rightChild = buildTree(S_no, remainingAttributes)
-     *    - Trả về node
-     *
-     * Ghi chú:
-     * - remainingAttributes = attributes - {bestAttribute}
-     * - Có thể tối ưu bằng cách dừng khi IG nhỏ hơn threshold.
+     * Xây dựng cây quyết định (Recursive)
      */
     public Node buildTree(List<EmailData> data, List<String> attributes) {
-        // TODO: implement theo comment ở trên
-        return null;
+        Node node = new Node();
+        // Nếu data rỗng (không có email nào) -> Trả về lá mặc định
+        if (data.isEmpty()) {
+            node.setLeaf(true);
+            node.setLabel("ham");
+            return node;
+        }
+
+        // Nếu tất cả email đều cùng 1 loại (Thuần nhất) -> Trả về lá nhãn đó
+        if (isPure(data)) {
+            node.setLeaf(true);
+            // Lấy nhãn của email đầu tiên làm đại diện
+            node.setLabel(data.getFirst().getSpam() ? "spam" : "ham");
+            return node;
+        }
+
+        // Nếu đã dùng hết thuộc tính để hỏi -> Chọn nhãn theo số đông
+        if (attributes.isEmpty()) {
+            node.setLeaf(true);
+            node.setLabel(getMajorityLabel(data));
+            return node;
+        }
+        String bestAttribute = null;
+        double maxInfoGain = -1.0;
+
+        // Duyệt qua từng thuộc tính còn lại để tính điểm IG
+        for (String attr : attributes) {
+            double ig = calculateInformationGain(data, attr);
+            if (ig > maxInfoGain) {
+                maxInfoGain = ig;
+                bestAttribute = attr;
+            }
+        }
+
+        // Nếu IG quá nhỏ, việc tách thêm ko mang lại lợi ích
+        if (maxInfoGain < 0.000001) {
+            node.setLeaf(true);
+            node.setLabel(getMajorityLabel(data));
+            return node;
+        }
+        node.setLeaf(false);
+        node.setSplitAttribute(bestAttribute);
+
+        // Chia data thành 2 nhóm:
+        // s_yes: Những email có value = 1
+        // s_no:  Những email có value = 0
+        List<EmailData> s_yes = new ArrayList<>();
+        List<EmailData> s_no = new ArrayList<>();
+
+        for (EmailData e : data) {
+            if (e.getAttributeValue(bestAttribute) == 1) {
+                s_yes.add(e);
+            } else {
+                s_no.add(e);
+            }
+        }
+
+        // Tạo danh sách thuộc tính mới cho lớp con (loại bỏ thuộc tính vừa dùng)
+        List<String> remainingAttributes = new ArrayList<>(attributes);
+        remainingAttributes.remove(bestAttribute);
+
+        // Tiếp tục xây cây cho nhánh con
+        // Quy ước: Left = Yes (Có), Right = No (Không)
+        node.setLeftChild(buildTree(s_yes, remainingAttributes));
+        node.setRightChild(buildTree(s_no, remainingAttributes));
+
+        return node;
     }
 
     /* Phân loại một EmailData bằng cây đã xây dựng */
@@ -161,6 +204,34 @@ public class DecisionTree {
         return new String[]{reasonTrace.toString(), detectedFeatures.toString()};
     }
 
+    /**
+     * Kiểm tra xem danh sách email có "thuần" không (toàn bộ là spam hoặc toàn bộ là ham)
+     */
+    private boolean isPure(List<EmailData> data) {
+        if (data.isEmpty()) return true;
+        boolean firstIsSpam = data.getFirst().getSpam();
+        for (EmailData e : data) {
+            if (e.getSpam() != firstIsSpam) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Lấy nhãn xuất hiện nhiều nhất
+     * Dùng khi không còn thuộc tính nào để tách nhưng dữ liệu vẫn lẫn lộn
+     */
+    private String getMajorityLabel(List<EmailData> data) {
+        int spamCount = 0;
+        int hamCount = 0;
+        for (EmailData e : data) {
+            if (e.getSpam()) spamCount++;
+            else hamCount++;
+        }
+        return (spamCount >= hamCount) ? "spam" : "ham";
+    }
+
     private String getAttributeNameVN(String attribute) {
         if (attribute == null) return "Unknown";
         return switch (attribute) {
@@ -171,11 +242,6 @@ public class DecisionTree {
             case "specialChar" -> "Nhiều ký tự đặc biệt";
             default -> attribute;
         };
-    }
-
-    // Getter/Setter cho root để có thể buildTree từ bên ngoài
-    public Node getRoot() {
-        return root;
     }
 
     public void setRoot(Node root) {
