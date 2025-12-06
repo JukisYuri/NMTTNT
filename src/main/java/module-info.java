@@ -7,4 +7,7 @@ module org.example.decisiontreemail {
 
     opens view to javafx.fxml;
     exports view;
+    exports controller;
+    exports model;
+    exports utils;
 }

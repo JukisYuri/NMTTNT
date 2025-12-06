@@ -41,7 +41,7 @@ public class EmailData {
             case "suspiciousWords" -> featureSuspiciousWords;
             case "strangeLink" -> featureStrangeLink;
             case "upperCase" -> featureUpperCase;
-            case "length" -> featureHowLongDescription;
+            case "longDescription" -> featureHowLongDescription;
             case "specialChar" -> featureSpecialChar;
             default -> 0;
         };
