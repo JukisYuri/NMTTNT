@@ -65,7 +65,7 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>org.example.decisiontreemail/org.example.decisiontreemail.HelloApplication
+                            <mainClass>org.example.decisiontreemail/view.MailFilterFrame
                             </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>
