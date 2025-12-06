@@ -41,3 +41,6 @@ build/
 /.idea/encodings.xml
 /.idea/misc.xml
 /.idea/vcs.xml
+/.idea/
+/.mvn/
+/src/main/java/datasets/
