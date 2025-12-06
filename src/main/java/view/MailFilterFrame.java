@@ -1,5 +1,6 @@
 package view;
 
+import controller.SpamController;
 import javafx.application.Application;
 
 import javafx.application.Platform;
@@ -10,46 +11,58 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import model.DecisionTree;
 
 public class MailFilterFrame extends Application {
     // Tạo thêm instance để lưu kết quả
     private Label resultLabel;
     private TextArea reasonArea;
     private TextArea noticeArea;
+    private TextField subjectField;
+    private TextArea contentArea;
+
+    // Gọi Controller để xử lý logic
+    private SpamController controller;
 
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Mail Filter");
 
+        // Khởi tạo Controller và Model
+        DecisionTree model = new DecisionTree();
+        controller = new SpamController(this, model);
+        controller.initializeModelFromDataset();
+
         // Labels and inputs
         Label subjectLabel = new Label("Tiêu đề (Subject):");
-        TextField subjectField = new TextField();
+        subjectField = new TextField();
         subjectField.setPromptText("Nhập tiêu đề mail...");
 
         Label contentLabel = new Label("Nội dung (Content):");
-        TextArea contentArea = new TextArea();
+        contentArea = new TextArea();
         contentArea.setPromptText("Nhập nội dung mail...");
         contentArea.setPrefRowCount(10);
 
         Button submitBtn = new Button("Kiểm tra (Submit)");
         Button clearBtn = new Button("Xóa");
 
-        Label resultLabel = new Label("Trạng thái: —");
-        resultLabel.setTextFill(Color.DARKBLUE);
+        // Sử dụng this. để gán vào instance field thay vì tạo biến local
+        this.resultLabel = new Label("Trạng thái: —");
+        this.resultLabel.setTextFill(Color.DARKBLUE);
 
         Label reasonLabel = new Label("Lý do (Reason):");
-        TextArea reasonArea = new TextArea();
-        reasonArea.setEditable(false);
-        reasonArea.setWrapText(true);
-        reasonArea.setPromptText("Kết quả trả ra");
-        reasonArea.setPrefRowCount(4);
+        this.reasonArea = new TextArea();
+        this.reasonArea.setEditable(false);
+        this.reasonArea.setWrapText(true);
+        this.reasonArea.setPromptText("Kết quả trả ra");
+        this.reasonArea.setPrefRowCount(4);
 
         Label noticeLabel = new Label("Chú ý những từ:");
-        TextArea noticeArea = new TextArea();
-        noticeArea.setEditable(false);
-        noticeArea.setWrapText(true);
-        noticeArea.setPromptText("Những lưu ý đặc biệt");
-        noticeArea.setPrefRowCount(4);
+        this.noticeArea = new TextArea();
+        this.noticeArea.setEditable(false);
+        this.noticeArea.setWrapText(true);
+        this.noticeArea.setPromptText("Những lưu ý đặc biệt");
+        this.noticeArea.setPrefRowCount(4);
 
         // Layout
         GridPane grid = new GridPane();
@@ -67,12 +80,12 @@ public class MailFilterFrame extends Application {
         buttons.setAlignment(Pos.CENTER_LEFT);
         grid.add(buttons, 1, 2);
 
-        grid.add(resultLabel, 1, 3);
+        grid.add(this.resultLabel, 1, 3);
 
         grid.add(reasonLabel, 0, 4);
-        grid.add(reasonArea, 1, 4);
+        grid.add(this.reasonArea, 1, 4);
         grid.add(noticeLabel, 0, 5);
-        grid.add(noticeArea, 1, 5);
+        grid.add(this.noticeArea, 1, 5);
 
         ColumnConstraints leftCol = new ColumnConstraints();
         leftCol.setPercentWidth(20);
@@ -80,12 +93,21 @@ public class MailFilterFrame extends Application {
         rightCol.setPercentWidth(80);
         grid.getColumnConstraints().addAll(leftCol, rightCol);
 
+        // Xử lý nút gọi Controller để kiểm tra email
+        submitBtn.setOnAction(e -> {
+            String subject = subjectField.getText();
+            String content = contentArea.getText();
+            controller.checkEmailAndUpdateView(subject, content);
+        });
+
+        // Xử lý nút xóa hết các trường
         clearBtn.setOnAction(e -> {
             subjectField.clear();
             contentArea.clear();
-            resultLabel.setText("Trạng thái: —");
-            resultLabel.setTextFill(Color.DARKBLUE);
-            reasonArea.clear();
+            this.resultLabel.setText("Trạng thái: —");
+            this.resultLabel.setTextFill(Color.DARKBLUE);
+            this.reasonArea.clear();
+            this.noticeArea.clear();
         });
 
         Scene scene = new Scene(grid, 700, 520);
