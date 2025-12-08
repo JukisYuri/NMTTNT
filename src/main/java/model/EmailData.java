@@ -1,8 +1,13 @@
 package model;
 
 public class EmailData {
-    private int featureSuspiciousWords; // Tỉ lệ những từ đáng ngờ
+    private int featureUrgencyWords;
+    private int featureMoneyWords;
+    private int featureScamFraudWords;
+    private int featureMarketingWords;
+    private int featureHealthWords;
     private int featureStrangeLink;
+
     private int featureUpperCase;
     private int featureHowLongDescription; // Tỉ lệ nội dung email dài bao nhiêu
     private int featureSpecialChar; // Tỉ lệ bao nhiêu kí tự đặc biệt
@@ -14,9 +19,14 @@ public class EmailData {
     public static final String ANSI_GREEN = "\u001B[32m";
 
     // Constructor này quan trọng với Controller
-    public EmailData(int featureFree, int featureStrangeLink, int featureUpperCase, int featureHowLongDescription, int featureSpecialChar) {
-        this.featureSuspiciousWords = featureFree;
+    public EmailData(int featureUrgencyWords, int featureMoneyWords, int featureScamFraudWords, int featureMarketingWords, int featureHealthWords, int featureStrangeLink, int featureUpperCase, int featureHowLongDescription, int featureSpecialChar) {
+        this.featureUrgencyWords = featureUrgencyWords;
+        this.featureMoneyWords = featureMoneyWords;
+        this.featureScamFraudWords = featureScamFraudWords;
+        this.featureMarketingWords = featureMarketingWords;
+        this.featureHealthWords = featureHealthWords;
         this.featureStrangeLink = featureStrangeLink;
+
         this.featureUpperCase = featureUpperCase;
         this.featureHowLongDescription = featureHowLongDescription;
         this.featureSpecialChar = featureSpecialChar;
@@ -24,9 +34,14 @@ public class EmailData {
     }
 
     // Nếu dataset có nhãn, dùng constructor này. Chủ yếu được dùng cho đọc file
-    public EmailData(int featureFree, int featureStrangeLink, int featureUpperCase, int featureHowLongDescription, int featureSpecialChar, boolean isSpam) {
-        this.featureSuspiciousWords = featureFree;
+    public EmailData(int featureUrgencyWords, int featureMoneyWords, int featureScamFraudWords, int featureMarketingWords, int featureHealthWords, int featureStrangeLink, int featureUpperCase, int featureHowLongDescription, int featureSpecialChar, boolean isSpam) {
+        this.featureUrgencyWords = featureUrgencyWords;
+        this.featureMoneyWords = featureMoneyWords;
+        this.featureScamFraudWords = featureScamFraudWords;
+        this.featureMarketingWords = featureMarketingWords;
+        this.featureHealthWords = featureHealthWords;
         this.featureStrangeLink = featureStrangeLink;
+
         this.featureUpperCase = featureUpperCase;
         this.featureHowLongDescription = featureHowLongDescription;
         this.featureSpecialChar = featureSpecialChar;
@@ -38,7 +53,11 @@ public class EmailData {
      */
     public int getAttributeValue(String attributeName) {
         return switch (attributeName) {
-            case "suspiciousWords" -> featureSuspiciousWords;
+            case "urgencyWords" -> featureUrgencyWords;
+            case "moneyWords" -> featureMoneyWords;
+            case "scamFraudWords" -> featureScamFraudWords;
+            case "marketingWords" -> featureMarketingWords;
+            case "healthWords" -> featureHealthWords;
             case "strangeLink" -> featureStrangeLink;
             case "upperCase" -> featureUpperCase;
             case "longDescription" -> featureHowLongDescription;
@@ -47,12 +66,44 @@ public class EmailData {
         };
     }
 
-    public int getFeatureSuspiciousWords() {
-        return featureSuspiciousWords;
+    public int getFeatureUrgencyWords() {
+        return featureUrgencyWords;
     }
 
-    public void setFeatureSuspiciousWords(int featureSuspiciousWords) {
-        this.featureSuspiciousWords = featureSuspiciousWords;
+    public void setFeatureUrgencyWords(int featureUrgencyWords) {
+        this.featureUrgencyWords = featureUrgencyWords;
+    }
+
+    public int getFeatureMoneyWords() {
+        return featureMoneyWords;
+    }
+
+    public void setFeatureMoneyWords(int featureMoneyWords) {
+        this.featureMoneyWords = featureMoneyWords;
+    }
+
+    public int getFeatureScamFraudWords() {
+        return featureScamFraudWords;
+    }
+
+    public void setFeatureScamFraudWords(int featureScamFraudWords) {
+        this.featureScamFraudWords = featureScamFraudWords;
+    }
+
+    public int getFeatureMarketingWords() {
+        return featureMarketingWords;
+    }
+
+    public void setFeatureMarketingWords(int featureMarketingWords) {
+        this.featureMarketingWords = featureMarketingWords;
+    }
+
+    public int getFeatureHealthWords() {
+        return featureHealthWords;
+    }
+
+    public void setFeatureHealthWords(int featureHealthWords) {
+        this.featureHealthWords = featureHealthWords;
     }
 
     public int getFeatureStrangeLink() {
@@ -97,20 +148,25 @@ public class EmailData {
 
     public String colorIsSpam(){
         if (isSpam == true) {
-            return ", isSpam=" + ANSI_RED + " " + isSpam + ANSI_RESET;
+            return " isSpam=" + ANSI_RED + isSpam + ANSI_RESET;
         } else {
-            return ", isSpam=" + ANSI_GREEN + " " + isSpam + ANSI_RESET;
+            return " isSpam=" + ANSI_GREEN + isSpam + ANSI_RESET;
         }
     }
 
     @Override
     public String toString() {
         return "EmailData{" +
-                "SuspiciousWords=" + featureSuspiciousWords +
-                ", StrangeLink=" + featureStrangeLink +
-                ", UpperCase=" + featureUpperCase +
-                ", HowLongDescription=" + featureHowLongDescription +
-                ", SpecialChar=" + featureSpecialChar +
-                colorIsSpam() + '}';
+                "featureUrgencyWords=" + featureUrgencyWords +
+                ", featureMoneyWords=" + featureMoneyWords +
+                ", featureScamFraudWords=" + featureScamFraudWords +
+                ", featureMarketingWords=" + featureMarketingWords +
+                ", featureHealthWords=" + featureHealthWords +
+                ", featureStrangeLink=" + featureStrangeLink +
+                ", featureUpperCase=" + featureUpperCase +
+                ", featureHowLongDescription=" + featureHowLongDescription +
+                ", featureSpecialChar=" + featureSpecialChar +
+                "," + colorIsSpam() +
+                '}';
     }
 }

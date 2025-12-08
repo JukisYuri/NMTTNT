@@ -10,11 +10,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static utils.ContainFeaturesCheck.*;
-
 public class SpamController {
-    MailFilterFrame view = new MailFilterFrame();
-    DecisionTree model = new DecisionTree();
+    MailFilterFrame view;
+    DecisionTree model;
 
     public SpamController(MailFilterFrame view, DecisionTree model) {
         this.view = view;
@@ -30,9 +28,21 @@ public class SpamController {
             rf.readFromPath();
 
             List<EmailData> dataList = rf.getDataList();
+            java.util.Collections.shuffle(dataList);
+            int trainSize = (int) (dataList.size() * 0.7); // Lấy 70% để học
+            List<EmailData> trainSet = dataList.subList(0, trainSize);
+            List<EmailData> testSet = dataList.subList(trainSize, dataList.size()); // 30% để test
+
+            System.out.println("Dataset size: " + dataList.size());
+            System.out.println("Training size: " + trainSet.size());
+            System.out.println("Test size: " + testSet.size());
 
             List<String> attributes = Arrays.asList(
-                    "suspiciousWords",
+                    "urgencyWords",
+                    "moneyWords",
+                    "scamFraudWords",
+                    "marketingWords",
+                    "healthWords",
                     "strangeLink",
                     "upperCase",
                     "longDescription",
@@ -41,6 +51,7 @@ public class SpamController {
 
             Node root = model.buildTree(dataList, attributes);
             model.setRoot(root);
+            model.evaluate(testSet);
 
         } catch (IOException e) {
             throw new RuntimeException("Không đọc được dataset" + e.getMessage(), e);
@@ -57,7 +68,11 @@ public class SpamController {
         String text = (s + "\n" + c).trim();
 
         // Trích xuất các đặc trưng từ email
-        int featureSuspiciousWords = ContainFeaturesCheck.containsSuspiciousWord(text);
+        int featureUrgencyWords = ContainFeaturesCheck.containsUrgencyWords(text);
+        int featureMoneyWords = ContainFeaturesCheck.containsMoneyWords(text);
+        int featureScamFraudWords = ContainFeaturesCheck.containsScamFraudWords(text);
+        int featureMarketingWords = ContainFeaturesCheck.containsMarketingWords(text);
+        int featureHealthWords = ContainFeaturesCheck.containsHealthWords(text);
         int featureStrangeLink     = ContainFeaturesCheck.containsStrangeLink(text);
         int featureUpperCase       = ContainFeaturesCheck.containsUpperCase(text);
         int featureSpecialChar     = ContainFeaturesCheck.containsSpecialChar(text);
@@ -65,7 +80,11 @@ public class SpamController {
 
         // Tạo đối tượng EmailData với các features đã trích xuất
         EmailData email = new EmailData(
-                featureSuspiciousWords,
+                featureUrgencyWords,
+                featureMoneyWords,
+                featureScamFraudWords,
+                featureMarketingWords,
+                featureHealthWords,
                 featureStrangeLink,
                 featureUpperCase,
                 featureLongDesc,
