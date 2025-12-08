@@ -141,7 +141,7 @@ public class DecisionTree {
         remainingAttributes.remove(bestAttribute);
 
         // Tiếp tục xây cây cho nhánh con
-        // Quy ước: Left = Yes (Có), Right = No (Không)
+        // đi left = yes, đi right = no
         node.setLeftChild(buildTree(s_yes, remainingAttributes));
         node.setRightChild(buildTree(s_no, remainingAttributes));
 
@@ -164,8 +164,8 @@ public class DecisionTree {
     }
 
     public String[] explainClassification(EmailData email) {
-        StringBuilder reasonTrace = new StringBuilder();
-        StringBuilder detectedFeatures = new StringBuilder();
+        StringBuilder reasonTrace = new StringBuilder(); // trả về lí do
+        StringBuilder detectedFeatures = new StringBuilder(); // detect ra theo features
 
         Node current = root;
         int step = 1;
@@ -235,13 +235,55 @@ public class DecisionTree {
     private String getAttributeNameVN(String attribute) {
         if (attribute == null) return "Unknown";
         return switch (attribute) {
-            case "suspiciousWords" -> "Từ khóa quảng cáo/đáng ngờ";
+            case "urgencyWords" -> "Từ khóa quảng cáo/đáng ngờ";
             case "strangeLink" -> "Đường dẫn (link) lạ";
             case "upperCase" -> "Quá nhiều chữ in hoa";
             case "longDescription" -> "Nội dung quá dài";
             case "specialChar" -> "Nhiều ký tự đặc biệt";
             default -> attribute;
         };
+    }
+
+    public void evaluate(List<EmailData> testData) {
+        System.out.println("\n--- KẾT QUẢ ĐÁNH GIÁ MODEL TRÊN TẬP TEST ---");
+
+        int total = testData.size();
+        int correct = 0;
+
+        // Confusion Matrix
+        int tp = 0; // True Positive: Spam -> Báo đúng là Spam
+        int tn = 0; // True Negative: Ham -> Báo đúng là Ham
+        int fp = 0; // False Positive: Ham -> Báo nhầm là Spam
+        int fn = 0; // False Negative: Spam -> Báo nhầm là Ham
+
+        for (EmailData email : testData) {
+            String predictedLabel = classify(email);
+            boolean isSpamActual = email.getSpam();
+            boolean isSpamPredicted = "spam".equals(predictedLabel);
+
+            if (isSpamActual == isSpamPredicted) {
+                correct++;
+                if (isSpamActual) tp++; else tn++;
+            } else {
+                if (isSpamPredicted) fp++; else fn++;
+            }
+        }
+
+        double accuracy = (total > 0) ? (double) correct / total * 100 : 0;
+        double precision = (tp + fp) > 0 ? (double) tp / (tp + fp) * 100 : 0;
+        double recall = (tp + fn) > 0 ? (double) tp / (tp + fn) * 100 : 0;
+        double f1 = (precision + recall) > 0 ? 2 * (precision * recall) / (precision + recall) : 0;
+
+        System.out.println("1. Tổng số mẫu kiểm tra: " + total);
+        System.out.printf("2. Độ chính xác tổng (Accuracy):  %.2f%%%n", accuracy);
+        System.out.println("   (Tỉ lệ đoán đúng chung cho cả 2 loại)");
+
+        System.out.printf("3. Precision (Chất lượng báo Spam): %.2f%%%n", precision);
+        System.out.println("   (Nếu máy báo là Spam, thì bao nhiêu % là Spam thật?)");
+
+        System.out.printf("4. Recall (Khả năng tóm Spam):      %.2f%%%n", recall);
+        System.out.println("   (Trong thực tế có 100 con Spam, máy tóm được bao nhiêu con?)");
+        System.out.println("5. F1 Score: " + f1);
     }
 
     public void setRoot(Node root) {
