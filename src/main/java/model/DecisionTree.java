@@ -235,7 +235,11 @@ public class DecisionTree {
     private String getAttributeNameVN(String attribute) {
         if (attribute == null) return "Unknown";
         return switch (attribute) {
-            case "urgencyWords" -> "Từ khóa quảng cáo/đáng ngờ";
+            case "urgencyWords" -> "Từ ngữ khẩn cấp";
+            case "moneyWords" -> "Từ ngữ tiền tệ";
+            case "scamFraudWords" -> "Từ ngữ lừa đảo, gian lận";
+            case "marketingWords" -> "Từ ngữ quảng cáo/tiếp thị";
+            case "healthWords" -> "Từ ngữ sức khoẻ, liên quan y tế";
             case "strangeLink" -> "Đường dẫn (link) lạ";
             case "upperCase" -> "Quá nhiều chữ in hoa";
             case "longDescription" -> "Nội dung quá dài";

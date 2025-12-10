@@ -2,146 +2,157 @@ package view;
 
 import controller.SpamController;
 import javafx.application.Application;
-
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import model.DecisionTree;
 
 public class MailFilterFrame extends Application {
-    // Tạo thêm instance để lưu kết quả
+
     private Label resultLabel;
     private TextArea reasonArea;
-    private TextArea noticeArea;
     private TextField subjectField;
     private TextArea contentArea;
-
-    // Gọi Controller để xử lý logic
     private SpamController controller;
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("Mail Filter");
+        primaryStage.setTitle("Mail Filter System");
 
         // Khởi tạo Controller và Model
         DecisionTree model = new DecisionTree();
         controller = new SpamController(this, model);
         controller.initializeModelFromDataset();
 
-        // Labels and inputs
+        // 1. Phần tiêu đề
         Label subjectLabel = new Label("Tiêu đề (Subject):");
+        subjectLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
         subjectField = new TextField();
         subjectField.setPromptText("Nhập tiêu đề mail...");
 
+        // 2. Phần nội dung
         Label contentLabel = new Label("Nội dung (Content):");
+        contentLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
         contentArea = new TextArea();
-        contentArea.setPromptText("Nhập nội dung mail...");
-        contentArea.setPrefRowCount(10);
+        contentArea.setPromptText("Nhập nội dung mail cần kiểm tra...");
+        contentArea.setWrapText(true);
 
+        // 3. Các nút bấm
         Button submitBtn = new Button("Kiểm tra (Submit)");
-        Button clearBtn = new Button("Xóa");
+        submitBtn.setStyle("-fx-base: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;");
+        submitBtn.setPrefWidth(120);
 
-        // Sử dụng this. để gán vào instance field thay vì tạo biến local
-        this.resultLabel = new Label("Trạng thái: —");
-        this.resultLabel.setTextFill(Color.DARKBLUE);
+        Button clearBtn = new Button("Xóa (Clear)");
+        clearBtn.setPrefWidth(100);
 
-        Label reasonLabel = new Label("Lý do (Reason):");
+        // 4. Phần kết quả
+        Label resultTitleLabel = new Label("Kết quả phân tích:");
+        resultTitleLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
+
+        this.resultLabel = new Label("waiting...");
+        this.resultLabel.setStyle("-fx-background-color: #e0e0e0; -fx-padding: 5px 10px; -fx-background-radius: 5px;");
+        this.resultLabel.setTextFill(Color.DARKGRAY);
+
+        Label reasonLabel = new Label("Chi tiết (Reason):");
+        reasonLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
+
         this.reasonArea = new TextArea();
         this.reasonArea.setEditable(false);
         this.reasonArea.setWrapText(true);
-        this.reasonArea.setPromptText("Kết quả trả ra");
-        this.reasonArea.setPrefRowCount(4);
+        this.reasonArea.setPromptText("Lý do hoặc xác suất sẽ hiện ở đây...");
+        this.reasonArea.setPrefRowCount(3);
 
-        Label noticeLabel = new Label("Chú ý những từ:");
-        this.noticeArea = new TextArea();
-        this.noticeArea.setEditable(false);
-        this.noticeArea.setWrapText(true);
-        this.noticeArea.setPromptText("Những lưu ý đặc biệt");
-        this.noticeArea.setPrefRowCount(4);
-
-        // Layout
         GridPane grid = new GridPane();
-        grid.setVgap(8);
-        grid.setHgap(10);
-        grid.setPadding(new Insets(12));
+        grid.setVgap(15);
+        grid.setHgap(15);
+        grid.setPadding(new Insets(20));
+        grid.setStyle("-fx-background-color: #f4f4f4;");
 
         grid.add(subjectLabel, 0, 0);
         grid.add(subjectField, 1, 0);
 
         grid.add(contentLabel, 0, 1);
         grid.add(contentArea, 1, 1);
+        GridPane.setValignment(contentLabel, VPos.TOP);
+        GridPane.setVgrow(contentArea, Priority.ALWAYS);
 
-        HBox buttons = new HBox(8, submitBtn, clearBtn);
+        HBox buttons = new HBox(10, submitBtn, clearBtn);
         buttons.setAlignment(Pos.CENTER_LEFT);
         grid.add(buttons, 1, 2);
 
-        grid.add(this.resultLabel, 1, 3);
+        Separator separator = new Separator();
+        grid.add(separator, 0, 3, 2, 1);
 
-        grid.add(reasonLabel, 0, 4);
-        grid.add(this.reasonArea, 1, 4);
-        grid.add(noticeLabel, 0, 5);
-        grid.add(this.noticeArea, 1, 5);
+        HBox resultBox = new HBox(10, resultTitleLabel, this.resultLabel);
+        resultBox.setAlignment(Pos.CENTER_LEFT);
+        grid.add(resultBox, 0, 4, 2, 1);
 
-        ColumnConstraints leftCol = new ColumnConstraints();
-        leftCol.setPercentWidth(20);
-        ColumnConstraints rightCol = new ColumnConstraints();
-        rightCol.setPercentWidth(80);
-        grid.getColumnConstraints().addAll(leftCol, rightCol);
+        grid.add(reasonLabel, 0, 5);
+        grid.add(this.reasonArea, 1, 5);
+        GridPane.setValignment(reasonLabel, VPos.TOP);
 
-        // Xử lý nút gọi Controller để kiểm tra email
+        ColumnConstraints col1 = new ColumnConstraints();
+        col1.setMinWidth(120);
+
+        ColumnConstraints col2 = new ColumnConstraints();
+        col2.setHgrow(Priority.ALWAYS);
+
+        grid.getColumnConstraints().addAll(col1, col2);
+
+        // xử lí sự kiện
         submitBtn.setOnAction(e -> {
             String subject = subjectField.getText();
             String content = contentArea.getText();
+            if(subject.isEmpty() && content.isEmpty()){
+                Alert alert = new Alert(Alert.AlertType.WARNING, "Vui lòng nhập nội dung!");
+                alert.show();
+                return;
+            }
             controller.checkEmailAndUpdateView(subject, content);
         });
 
-        // Xử lý nút xóa hết các trường
         clearBtn.setOnAction(e -> {
             subjectField.clear();
             contentArea.clear();
-            this.resultLabel.setText("Trạng thái: —");
-            this.resultLabel.setTextFill(Color.DARKBLUE);
+            this.resultLabel.setText("waiting...");
+            this.resultLabel.setTextFill(Color.DARKGRAY);
             this.reasonArea.clear();
-            this.noticeArea.clear();
         });
 
-        Scene scene = new Scene(grid, 700, 520);
+        Scene scene = new Scene(grid, 750, 600);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
-    //Đặt setter methods
     public void setResultText(String text) {
         if (resultLabel != null) {
             Platform.runLater(() -> {
-                resultLabel.setText(text);
-                //Đổi màu thành đỏ nếu là spam
-                if (text.contains("spam")) {
-                    resultLabel.setTextFill(Color.RED);
-                } else if (text.contains("ham")) {
-                    //Xanh nếu ham
-                    resultLabel.setTextFill(Color.GREEN);
+                resultLabel.setText(text.toUpperCase());
+                if (text.toLowerCase().contains("spam")) {
+                    resultLabel.setTextFill(Color.WHITE);
+                    resultLabel.setStyle("-fx-background-color: #e53935; -fx-padding: 5px 10px; -fx-background-radius: 5px; -fx-font-weight: bold;");
+                } else if (text.toLowerCase().contains("ham")) {
+                    resultLabel.setTextFill(Color.WHITE);
+                    resultLabel.setStyle("-fx-background-color: #43A047; -fx-padding: 5px 10px; -fx-background-radius: 5px; -fx-font-weight: bold;");
                 } else {
-                    //Còn lại xanh đậm
                     resultLabel.setTextFill(Color.DARKBLUE);
+                    resultLabel.setStyle("-fx-background-color: #e0e0e0; -fx-padding: 5px 10px; -fx-background-radius: 5px;");
                 }
             });
         }
     }
+
     public void setReasonText(String text) {
         if (reasonArea != null) {
             Platform.runLater(() -> reasonArea.setText(text));
-        }
-    }
-
-    public void setNoticeText(String text) {
-        if (noticeArea != null) {
-            Platform.runLater(() -> noticeArea.setText(text));
         }
     }
 }
