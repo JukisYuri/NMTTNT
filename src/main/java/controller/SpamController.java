@@ -100,7 +100,5 @@ public class SpamController {
         // Cập nhật giao diện
         view.setResultText("Kết quả: " + label);
         view.setReasonText(explain == null || explain.length == 0 ? "" : String.join("\n", explain));
-        view.setNoticeText("Đã kiểm tra xong");
     }
-
 }
