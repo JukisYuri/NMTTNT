@@ -9,6 +9,9 @@ public class Node {
     private Node leftChild; // Nhánh đi theo nếu Email có chứa từ khóa trong splitAttribute
     private Node rightChild; // Nhánh đi theo nếu Email không chứa từ khoá
 
+    private int spamCount;
+    private int hamCount;
+
     public Node() {
     }
 
@@ -50,5 +53,22 @@ public class Node {
 
     public void setRightChild(Node rightChild) {
         this.rightChild = rightChild;
+    }
+
+
+    public int getSpamCount() {
+        return spamCount;
+    }
+
+    public void setSpamCount(int spamCount) {
+        this.spamCount = spamCount;
+    }
+
+    public int getHamCount() {
+        return hamCount;
+    }
+
+    public void setHamCount(int hamCount) {
+        this.hamCount = hamCount;
     }
 }

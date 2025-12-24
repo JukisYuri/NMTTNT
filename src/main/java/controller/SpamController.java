@@ -62,7 +62,6 @@ public class SpamController {
      * Gọi khi người dùng submit 1 email mới:
      */
     public void checkEmailAndUpdateView(String subject, String content) {
-        // Xử lý input (tránh null)
         String s = subject == null ? "" : subject;
         String c = content == null ? "" : content;
         String text = (s + "\n" + c).trim();
@@ -73,12 +72,11 @@ public class SpamController {
         int featureScamFraudWords = ContainFeaturesCheck.containsScamFraudWords(text);
         int featureMarketingWords = ContainFeaturesCheck.containsMarketingWords(text);
         int featureHealthWords = ContainFeaturesCheck.containsHealthWords(text);
-        int featureStrangeLink     = ContainFeaturesCheck.containsStrangeLink(text);
-        int featureUpperCase       = ContainFeaturesCheck.containsUpperCase(text);
-        int featureSpecialChar     = ContainFeaturesCheck.containsSpecialChar(text);
-        int featureLongDesc        = ContainFeaturesCheck.howLongDescription(text);
+        int featureStrangeLink = ContainFeaturesCheck.containsStrangeLink(text);
+        int featureUpperCase = ContainFeaturesCheck.containsUpperCase(text);
+        int featureSpecialChar = ContainFeaturesCheck.containsSpecialChar(text);
+        int featureLongDesc = ContainFeaturesCheck.howLongDescription(text);
 
-        // Tạo đối tượng EmailData với các features đã trích xuất
         EmailData email = new EmailData(
                 featureUrgencyWords,
                 featureMoneyWords,
@@ -91,13 +89,12 @@ public class SpamController {
                 featureSpecialChar
         );
 
-        // Phân loại email bằng Decision Tree
         String label = model.classify(email);
-
-        // Lấy lý do phân loại
         String[] explain = model.explainClassification(email);
 
-        // Cập nhật giao diện
+        // === THÊM DÒNG NÀY - IN CÂY ĐƯỜNG ĐI RA TERMINAL ===
+        model.printClassificationTree(email);
+
         view.setResultText("Kết quả: " + label);
         view.setReasonText(explain == null || explain.length == 0 ? "" : String.join("\n", explain));
     }
