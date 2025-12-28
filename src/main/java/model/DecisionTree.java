@@ -151,7 +151,7 @@ public class DecisionTree {
     /* Phân loại một EmailData bằng cây đã xây dựng */
     public String classify(EmailData email) {
         Node current = root;
-        while (!current.isLeaf()) {
+        while (!current.isLeaf()) { // lí do cho setLeaf là true để thực hiện vòng lặp này
             String attr = current.getSplitAttribute();
             int value = email.getAttributeValue(attr);
             if (value == 1) {

@@ -1,14 +1,14 @@
 package model;
 
 public class EmailData {
-    private int featureUrgencyWords;
-    private int featureMoneyWords;
-    private int featureScamFraudWords;
-    private int featureMarketingWords;
-    private int featureHealthWords;
-    private int featureStrangeLink;
+    private int featureUrgencyWords; // Những từ chỉ sự khẩn cấp
+    private int featureMoneyWords; // Những từ liên quan đến tiền tệ
+    private int featureScamFraudWords; // Những từ liên quan đến scam, quá dễ dàng có được
+    private int featureMarketingWords; // Những từ liên quan đến chào hàng
+    private int featureHealthWords; // Những từ liên quan đến sức khoẻ
+    private int featureStrangeLink; // Link lạ
 
-    private int featureUpperCase;
+    private int featureUpperCase; // Số lượng chữ cái viết hoa
     private int featureHowLongDescription; // Tỉ lệ nội dung email dài bao nhiêu
     private int featureSpecialChar; // Tỉ lệ bao nhiêu kí tự đặc biệt
     private Boolean isSpam;
