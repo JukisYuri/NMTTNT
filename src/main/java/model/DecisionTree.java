@@ -6,6 +6,16 @@ import java.util.List;
 public class DecisionTree {
     private Node root;
 
+    private static final String RESET = "\u001B[0m";
+    private static final String RED = "\u001B[31m";
+    private static final String GREEN = "\u001B[32m";
+    private static final String YELLOW = "\u001B[33m";
+    private static final String BLUE = "\u001B[34m";
+    private static final String PURPLE = "\u001B[35m";
+    private static final String CYAN = "\u001B[36m";
+    private static final String BOLD = "\u001B[1m";
+    private static final String DIM = "\u001B[2m";
+
     public double calculateEntropy(List<EmailData> data) {
         if (data.isEmpty()) {
             return 0.0;
@@ -62,7 +72,6 @@ public class DecisionTree {
         }
 
         // Tính entropy của từng tập
-
         double entropy_yes = calculateEntropy(s_yes);
         double entropy_no = calculateEntropy(s_no);
 
@@ -79,7 +88,9 @@ public class DecisionTree {
      * Xây dựng cây quyết định (Recursive)
      */
     public Node buildTree(List<EmailData> data, List<String> attributes) {
+
         Node node = new Node();
+
         // Nếu data rỗng (không có email nào) -> Trả về lá mặc định
         if (data.isEmpty()) {
             node.setLeaf(true);
@@ -90,8 +101,15 @@ public class DecisionTree {
         // Nếu tất cả email đều cùng 1 loại (Thuần nhất) -> Trả về lá nhãn đó
         if (isPure(data)) {
             node.setLeaf(true);
-            // Lấy nhãn của email đầu tiên làm đại diện
             node.setLabel(data.getFirst().getSpam() ? "spam" : "ham");
+            // Set thống kê cho nút lá
+            int spamCount = 0, hamCount = 0;
+            for (EmailData e : data) {
+                if (e.getSpam() != null && e.getSpam()) spamCount++;
+                else hamCount++;
+            }
+            node.setSpamCount(spamCount);
+            node.setHamCount(hamCount);
             return node;
         }
 
@@ -99,8 +117,17 @@ public class DecisionTree {
         if (attributes.isEmpty()) {
             node.setLeaf(true);
             node.setLabel(getMajorityLabel(data));
+            // Set thống kê cho nút lá
+            int spamCount = 0, hamCount = 0;
+            for (EmailData e : data) {
+                if (e.getSpam() != null && e.getSpam()) spamCount++;
+                else hamCount++;
+            }
+            node.setSpamCount(spamCount);
+            node.setHamCount(hamCount);
             return node;
         }
+
         String bestAttribute = null;
         double maxInfoGain = -1.0;
 
@@ -117,8 +144,17 @@ public class DecisionTree {
         if (maxInfoGain < 0.000001) {
             node.setLeaf(true);
             node.setLabel(getMajorityLabel(data));
+            // Set thống kê cho nút lá
+            int spamCount = 0, hamCount = 0;
+            for (EmailData e : data) {
+                if (e.getSpam() != null && e.getSpam()) spamCount++;
+                else hamCount++;
+            }
+            node.setSpamCount(spamCount);
+            node.setHamCount(hamCount);
             return node;
         }
+
         node.setLeaf(false);
         node.setSplitAttribute(bestAttribute);
 
@@ -144,6 +180,15 @@ public class DecisionTree {
         // đi left = yes, đi right = no
         node.setLeftChild(buildTree(s_yes, remainingAttributes));
         node.setRightChild(buildTree(s_no, remainingAttributes));
+
+        // Set thống kê cho nút không phải lá
+        int spamCount = 0, hamCount = 0;
+        for (EmailData e : data) {
+            if (e.getSpam() != null && e.getSpam()) spamCount++;
+            else hamCount++;
+        }
+        node.setSpamCount(spamCount);
+        node.setHamCount(hamCount);
 
         return node;
     }
@@ -267,9 +312,11 @@ public class DecisionTree {
 
             if (isSpamActual == isSpamPredicted) {
                 correct++;
-                if (isSpamActual) tp++; else tn++;
+                if (isSpamActual) tp++;
+                else tn++;
             } else {
-                if (isSpamPredicted) fp++; else fn++;
+                if (isSpamPredicted) fp++;
+                else fn++;
             }
         }
 
@@ -288,6 +335,141 @@ public class DecisionTree {
         System.out.printf("4. Recall (Khả năng tóm Spam):      %.2f%%%n", recall);
         System.out.println("   (Trong thực tế có 100 con Spam, máy tóm được bao nhiêu con?)");
         System.out.println("5. F1 Score: " + f1);
+    }
+
+    /**
+     * In đường đi phân loại của email đã nhập
+     */
+    public void printClassificationTree(EmailData email) {
+        System.out.println();
+        System.out.println(CYAN + "═══════════════════════════════════════════════════════════════════" + RESET);
+        System.out.println(CYAN + "   " + BOLD + "🌳 CÂY QUYẾT ĐỊNH CHO EMAIL ĐÃ NHẬP" + RESET);
+        System.out.println(CYAN + "═══════════════════════════════════════════════════════════════════" + RESET);
+
+        // In features đã phát hiện
+        printDetectedFeatures(email);
+
+        System.out.println();
+        System.out.println(YELLOW + "--- ĐƯỜNG ĐI TRÊN CÂY ---" + RESET);
+
+        if (root == null) {
+            System.out.println(RED + "⚠ Cây chưa được xây dựng!" + RESET);
+            return;
+        }
+
+        printPathRecursive(root, email, "");
+
+        System.out.println();
+        System.out.println(CYAN + "═══════════════════════════════════════════════════════════════════" + RESET);
+        System.out.println();
+    }
+
+    /**
+     * In các đặc trưng đã phát hiện trong email
+     */
+    private void printDetectedFeatures(EmailData email) {
+        System.out.println();
+        System.out.println(PURPLE + "📧 Đặc trưng phát hiện:" + RESET);
+
+        String[][] features = {
+                {"urgencyWords", "Từ khẩn cấp"},
+                {"moneyWords", "Từ tiền tệ"},
+                {"scamFraudWords", "Từ lừa đảo"},
+                {"marketingWords", "Từ quảng cáo"},
+                {"healthWords", "Từ sức khỏe"},
+                {"strangeLink", "Link lạ"},
+                {"upperCase", "Chữ in hoa"},
+                {"longDescription", "Nội dung dài"},
+                {"specialChar", "Ký tự đặc biệt"}
+        };
+
+        StringBuilder detected = new StringBuilder();
+        int count = 0;
+        for (String[] f : features) {
+            if (email.getAttributeValue(f[0]) == 1) {
+                if (count > 0) detected.append(", ");
+                detected.append(GREEN).append(f[1]).append(RESET);
+                count++;
+            }
+        }
+
+        if (count == 0) {
+            System.out.println("   " + DIM + "(Không phát hiện đặc trưng spam nào)" + RESET);
+        } else {
+            System.out.println("   " + detected);
+            System.out.println("   " + DIM + "(" + count + " đặc trưng được phát hiện)" + RESET);
+        }
+    }
+
+    /**
+     * In đường đi đệ quy - chỉ highlight nhánh email đi qua
+     */
+    private void printPathRecursive(Node node, EmailData email, String prefix) {
+        if (node == null) return;
+
+        if (node.isLeaf()) {
+            // Nút lá - kết quả
+            String label = node.getLabel().toUpperCase();
+            if ("SPAM".equals(label)) {
+                System.out.println(prefix + "└── " + RED + BOLD + "★ [SPAM] ★" + RESET);
+                System.out.println(prefix + "    " + DIM + "(Độ tin cậy: " + getConfidence(node) + ")" + RESET);
+            } else {
+                System.out.println(prefix + "└── " + GREEN + BOLD + "✓ [HAM] ✓" + RESET);
+                System.out.println(prefix + "    " + DIM + "(Độ tin cậy: " + getConfidence(node) + ")" + RESET);
+            }
+        } else {
+            String attr = node.getSplitAttribute();
+            int value = email.getAttributeValue(attr);
+            String attrNameVN = getAttributeNameVN(attr);
+
+            // In câu hỏi với thống kê
+            String stats = getNodeStats(node);
+            System.out.println(prefix + "└── " + CYAN + BOLD + "Hỏi: " + attrNameVN + "?" + RESET + " " + DIM + stats + RESET);
+
+            if (value == 1) {
+                // Đi nhánh CÓ
+                System.out.println(prefix + "    ├── " + GREEN + BOLD + "(CÓ)" + RESET + " -> " + YELLOW + "đi đường này ▼" + RESET);
+                System.out.println(prefix + "    │   " + DIM + getChildStats(node.getLeftChild()) + RESET);
+                printPathRecursive(node.getLeftChild(), email, prefix + "    │   ");
+                System.out.println(prefix + "    └── " + DIM + "(KHÔNG)" + RESET);
+            } else {
+                // Đi nhánh KHÔNG
+                System.out.println(prefix + "    ├── " + DIM + "(CÓ)" + RESET);
+                System.out.println(prefix + "    └── " + RED + BOLD + "(KHÔNG)" + RESET + " -> " + YELLOW + "đi đường này ▼" + RESET);
+                System.out.println(prefix + "        " + DIM + getChildStats(node.getRightChild()) + RESET);
+                printPathRecursive(node.getRightChild(), email, prefix + "        ");
+            }
+        }
+    }
+
+    /**
+     * Lấy thống kê node
+     */
+    private String getNodeStats(Node node) {
+        int total = node.getHamCount() + node.getSpamCount();
+        if (total == 0) return "";
+        return String.format("[Ham: %d | Spam: %d]", node.getHamCount(), node.getSpamCount());
+    }
+
+    /**
+     * Lấy thống kê node con
+     */
+    private String getChildStats(Node node) {
+        if (node == null) return "";
+        int total = node.getHamCount() + node.getSpamCount();
+        if (total == 0) return "";
+        return String.format("(Ham: %d | Spam: %d)", node.getHamCount(), node.getSpamCount());
+    }
+
+    /**
+     * Tính độ tin cậy của kết quả
+     */
+    private String getConfidence(Node node) {
+        int total = node.getHamCount() + node.getSpamCount();
+        if (total == 0) return "N/A";
+        int majority = Math.max(node.getSpamCount(), node.getHamCount());
+        double confidence = (majority * 100.0) / total;
+        return String.format("%.1f%% từ %d mẫu", confidence, total);
     }
 
     public void setRoot(Node root) {
