@@ -134,12 +134,30 @@ public class ContainFeaturesCheck {
             "✓", "✔", "✖", "→", "⇒"
     };
 
-    public static int containsUrgencyWords(String text) { return containsWord(text, URGENCY_WORDS); }
-    public static int containsMoneyWords(String text) { return containsWord(text, MONEY_WORDS); }
-    public static int containsScamFraudWords(String text) { return containsWord(text, SCAM_FRAUD_WORDS); }
-    public static int containsMarketingWords(String text) { return containsWord(text, MARKETING_WORDS); }
-    public static int containsHealthWords(String text) { return containsWord(text, HEALTH_GIMMICK_WORDS); }
-    public static int containSecurityWords(String text) { return containsWord(text, SECURITY_WORDS); }
+    public static int containsUrgencyWords(String text) {
+        return containsWord(text, URGENCY_WORDS);
+    }
+
+    public static int containsMoneyWords(String text) {
+        return containsWord(text, MONEY_WORDS);
+    }
+
+    public static int containsScamFraudWords(String text) {
+        return containsWord(text, SCAM_FRAUD_WORDS);
+    }
+
+    public static int containsMarketingWords(String text) {
+        return containsWord(text, MARKETING_WORDS);
+    }
+
+    public static int containsHealthWords(String text) {
+        return containsWord(text, HEALTH_GIMMICK_WORDS);
+    }
+
+    public static int containSecurityWords(String text) {
+        return containsWord(text, SECURITY_WORDS);
+    }
+
     public static int containsStrangeLink(String wordsInput) {
         return containsWord(wordsInput, STRANGE_LINKS);
     }
