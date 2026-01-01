@@ -187,40 +187,59 @@ public class ContainFeaturesCheck {
     public static int containsUpperCase(String wordsInput) {
         if (wordsInput == null || wordsInput.isBlank()) return 0;
         int upperCount = 0;
+        int letterCount = 0; // Chỉ đếm chữ cái
+
         for (int i = 0; i < wordsInput.length(); i++) {
             char c = wordsInput.charAt(i);
-            if (Character.isUpperCase(c)) {
-                upperCount++;
+            if (Character.isLetter(c)) {
+                // đếm toàn bộ chữ
+                letterCount++;
+                if (Character.isUpperCase(c)) {
+                    // đếm mỗi chữ in hoa
+                    upperCount++;
+                }
             }
         }
-        if (upperCount < 100) return 0;
-        if (upperCount <= 453) return 1;
-        return 2;
+
+        if (letterCount == 0) return 0;
+
+        // tính tỷ lệ
+        double ratio = (double) upperCount / letterCount;
+
+        if (ratio < 0.15) return 0;      // < 15% chữ hoa thì 0
+        if (ratio <= 0.35) return 1;     // 15-35% chữ hoa thì 1
+        return 2;                         // > 35% chữ hoa thì 2
     }
 
     // Hàm kiểm tra nội dung email dài bao nhiêu
-    public static int howLongDescription(String wordsInput){
+    public static int howLongDescription(String wordsInput) {
         if (wordsInput == null || wordsInput.isEmpty()) return 0;
         int textLength = wordsInput.split("\\s+").length;
-        if (textLength < 50) return 0;
-        if (textLength <= 138) return 1;
+        if (textLength < 100) return 0;
+        if (textLength <= 300) return 1;
         return 2;
     }
 
     // Hàm kiểm tra điều kiện chứa kí tự đặc biệt
     public static int containSpecialChar(String wordsInput, String[] patterns) {
         if (wordsInput == null || wordsInput.isEmpty()) return 0;
+
         int specialCharCount = 0;
         for (int i = 0; i < wordsInput.length(); i++) {
             String currentChar = String.valueOf(wordsInput.charAt(i));
             for (String pattern : patterns) {
-                if (currentChar.contains(pattern)){
+                if (currentChar.equals(pattern)) {
+                    // đếm mỗi kí tự đặc biệt
                     specialCharCount++;
+                    break; // Tránh đếm trùng
                 }
             }
         }
-        if (specialCharCount < 10) return 0;
-        if (specialCharCount <= 23) return 1;
-        return 2;
+
+        double ratio = (double) specialCharCount / wordsInput.length();
+
+        if (ratio < 0.02) return 0;      // < 2% thì 0
+        if (ratio <= 0.05) return 1;     // 2-5% thì 1
+        return 2;                         // > 5% thì 2
     }
 }
