@@ -121,7 +121,11 @@ public class ContainFeaturesCheck {
             "verify your identity", "wallet security", "your account is at risk"
     };
     public static final String[] STRANGE_LINKS = {
-            "http://", "https://", "click here", "bit.ly/", "tinyurl.com", "goo.gl/", "gg.gg", "t.co", "cutt.ly", "is.gd", "ouo.io", "www"
+            "http://", "https://", "www",
+            "bit.ly/", "tinyurl.com", "goo.gl/", "gg.gg",
+            "t.co", "cutt.ly", "is.gd", "ouo.io",
+            "click.php", "redirect", "track.php",
+            ".xyz/", ".tk/", ".ml/", ".ga/", ".cf/"  // TLD miễn phí thường bị lạm dụng
     };
     public static final String[] SPECIAL_CHARS = {
             "!", "@", "#", "$", "%", "&", "*",
@@ -130,12 +134,30 @@ public class ContainFeaturesCheck {
             "✓", "✔", "✖", "→", "⇒"
     };
 
-    public static int containsUrgencyWords(String text) { return containsWord(text, URGENCY_WORDS); }
-    public static int containsMoneyWords(String text) { return containsWord(text, MONEY_WORDS); }
-    public static int containsScamFraudWords(String text) { return containsWord(text, SCAM_FRAUD_WORDS); }
-    public static int containsMarketingWords(String text) { return containsWord(text, MARKETING_WORDS); }
-    public static int containsHealthWords(String text) { return containsWord(text, HEALTH_GIMMICK_WORDS); }
-    public static int containSecurityWords(String text) { return containsWord(text, SECURITY_WORDS); }
+    public static int containsUrgencyWords(String text) {
+        return containsWord(text, URGENCY_WORDS);
+    }
+
+    public static int containsMoneyWords(String text) {
+        return containsWord(text, MONEY_WORDS);
+    }
+
+    public static int containsScamFraudWords(String text) {
+        return containsWord(text, SCAM_FRAUD_WORDS);
+    }
+
+    public static int containsMarketingWords(String text) {
+        return containsWord(text, MARKETING_WORDS);
+    }
+
+    public static int containsHealthWords(String text) {
+        return containsWord(text, HEALTH_GIMMICK_WORDS);
+    }
+
+    public static int containSecurityWords(String text) {
+        return containsWord(text, SECURITY_WORDS);
+    }
+
     public static int containsStrangeLink(String wordsInput) {
         return containsWord(wordsInput, STRANGE_LINKS);
     }
@@ -165,40 +187,59 @@ public class ContainFeaturesCheck {
     public static int containsUpperCase(String wordsInput) {
         if (wordsInput == null || wordsInput.isBlank()) return 0;
         int upperCount = 0;
+        int letterCount = 0; // Chỉ đếm chữ cái
+
         for (int i = 0; i < wordsInput.length(); i++) {
             char c = wordsInput.charAt(i);
-            if (Character.isUpperCase(c)) {
-                upperCount++;
+            if (Character.isLetter(c)) {
+                // đếm toàn bộ chữ
+                letterCount++;
+                if (Character.isUpperCase(c)) {
+                    // đếm mỗi chữ in hoa
+                    upperCount++;
+                }
             }
         }
-        if (upperCount < 100) return 0;
-        if (upperCount <= 453) return 1;
-        return 2;
+
+        if (letterCount == 0) return 0;
+
+        // tính tỷ lệ
+        double ratio = (double) upperCount / letterCount;
+
+        if (ratio < 0.15) return 0;      // < 15% chữ hoa thì 0
+        if (ratio <= 0.35) return 1;     // 15-35% chữ hoa thì 1
+        return 2;                         // > 35% chữ hoa thì 2
     }
 
     // Hàm kiểm tra nội dung email dài bao nhiêu
-    public static int howLongDescription(String wordsInput){
+    public static int howLongDescription(String wordsInput) {
         if (wordsInput == null || wordsInput.isEmpty()) return 0;
         int textLength = wordsInput.split("\\s+").length;
-        if (textLength < 50) return 0;
-        if (textLength <= 138) return 1;
+        if (textLength < 100) return 0;
+        if (textLength <= 300) return 1;
         return 2;
     }
 
     // Hàm kiểm tra điều kiện chứa kí tự đặc biệt
     public static int containSpecialChar(String wordsInput, String[] patterns) {
         if (wordsInput == null || wordsInput.isEmpty()) return 0;
+
         int specialCharCount = 0;
         for (int i = 0; i < wordsInput.length(); i++) {
             String currentChar = String.valueOf(wordsInput.charAt(i));
             for (String pattern : patterns) {
-                if (currentChar.contains(pattern)){
+                if (currentChar.equals(pattern)) {
+                    // đếm mỗi kí tự đặc biệt
                     specialCharCount++;
+                    break; // Tránh đếm trùng
                 }
             }
         }
-        if (specialCharCount < 10) return 0;
-        if (specialCharCount <= 23) return 1;
-        return 2;
+
+        double ratio = (double) specialCharCount / wordsInput.length();
+
+        if (ratio < 0.02) return 0;      // < 2% thì 0
+        if (ratio <= 0.05) return 1;     // 2-5% thì 1
+        return 2;                         // > 5% thì 2
     }
 }
