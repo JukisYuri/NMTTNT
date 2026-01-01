@@ -121,7 +121,11 @@ public class ContainFeaturesCheck {
             "verify your identity", "wallet security", "your account is at risk"
     };
     public static final String[] STRANGE_LINKS = {
-            "http://", "https://", "click here", "bit.ly/", "tinyurl.com", "goo.gl/", "gg.gg", "t.co", "cutt.ly", "is.gd", "ouo.io", "www"
+            "http://", "https://", "www",
+            "bit.ly/", "tinyurl.com", "goo.gl/", "gg.gg",
+            "t.co", "cutt.ly", "is.gd", "ouo.io",
+            "click.php", "redirect", "track.php",
+            ".xyz/", ".tk/", ".ml/", ".ga/", ".cf/"  // TLD miễn phí thường bị lạm dụng
     };
     public static final String[] SPECIAL_CHARS = {
             "!", "@", "#", "$", "%", "&", "*",
