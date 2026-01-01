@@ -30,14 +30,7 @@ public class SpamController {
             rf.readFromPath();
 
             List<EmailData> dataList = rf.getDataList();
-            java.util.Collections.shuffle(dataList);
-            int trainSize = (int) (dataList.size() * 0.7); // Lấy 70% để học
-            List<EmailData> trainSet = dataList.subList(0, trainSize);
-            List<EmailData> testSet = dataList.subList(trainSize, dataList.size()); // 30% để test
-
             System.out.println("Dataset size: " + dataList.size());
-            System.out.println("Training size: " + trainSet.size());
-            System.out.println("Test size: " + testSet.size());
 
             List<String> attributes = Arrays.asList(
                     "urgencyWords",
@@ -45,6 +38,7 @@ public class SpamController {
                     "scamFraudWords",
                     "marketingWords",
                     "healthWords",
+                    "securityWords",
                     "strangeLink",
                     "upperCase",
                     "longDescription",
@@ -53,8 +47,7 @@ public class SpamController {
 
             Node root = model.buildTree(dataList, attributes);
             model.setRoot(root);
-            model.evaluate(testSet);
-
+            System.out.println("Model đã được khởi tạo thành công!");
         } catch (IOException e) {
             throw new RuntimeException("Không đọc được dataset" + e.getMessage(), e);
         }
@@ -76,6 +69,7 @@ public class SpamController {
                     ContainFeaturesCheck.containsScamFraudWords(trimmedText),
                     ContainFeaturesCheck.containsMarketingWords(trimmedText),
                     ContainFeaturesCheck.containsHealthWords(trimmedText),
+                    ContainFeaturesCheck.containSecurityWords(trimmedText),
                     ContainFeaturesCheck.containsStrangeLink(trimmedText),
                     ContainFeaturesCheck.containsUpperCase(trimmedText),
                     ContainFeaturesCheck.howLongDescription(trimmedText),

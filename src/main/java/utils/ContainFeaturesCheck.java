@@ -98,6 +98,28 @@ public class ContainFeaturesCheck {
             "reverses aging", "reverse aging", "safe and effective", "scientifically proven",
             "viagra", "vicodin", "weight loss", "xanax", "youthful skin"
     };
+    // NHÓM 6: SECURITY PHISHING & FAKE ALERTS (Giả mạo cảnh báo bảo mật)
+    public static final String[] SECURITY_WORDS = {
+            "account access", "account blocked", "account disabled", "account expired",
+            "account limited", "account locked", "account review", "account suspended",
+            "account theft", "account validation", "account verification", "action required",
+            "activate your account", "attempt to login", "authentication required",
+            "authorize payment", "bank account", "billing error", "billing problem",
+            "change of address", "change your password", "check activity", "click to restore",
+            "confirm identity", "confirm password", "confirm your account", "credit card declined",
+            "deactivation notice", "device verification", "failed login", "fraud alert",
+            "identity theft", "identity verification", "invalid login", "locked out",
+            "login attempt", "login from new device", "login reminder", "new sign-in",
+            "password expiration", "password expiry", "payment declined", "protect your account",
+            "reactivate account", "reset your password", "restore access", "secure center",
+            "secure message", "security alert", "security check", "security measure",
+            "security notification", "security reason", "security warning", "sign-in attempt",
+            "suspicious activity", "suspicious login", "suspicious sign-in", "unauthorized access",
+            "unauthorized login", "unlock account", "unusual activity", "unusual login",
+            "update billing", "update payment", "update your information", "validate account",
+            "verify account", "verify identity", "verify now", "verify your email",
+            "verify your identity", "wallet security", "your account is at risk"
+    };
     public static final String[] STRANGE_LINKS = {
             "http://", "https://", "click here", "bit.ly/", "tinyurl.com", "goo.gl/", "gg.gg", "t.co", "cutt.ly", "is.gd", "ouo.io", "www"
     };
@@ -113,6 +135,7 @@ public class ContainFeaturesCheck {
     public static int containsScamFraudWords(String text) { return containsWord(text, SCAM_FRAUD_WORDS); }
     public static int containsMarketingWords(String text) { return containsWord(text, MARKETING_WORDS); }
     public static int containsHealthWords(String text) { return containsWord(text, HEALTH_GIMMICK_WORDS); }
+    public static int containSecurityWords(String text) { return containsWord(text, SECURITY_WORDS); }
     public static int containsStrangeLink(String wordsInput) {
         return containsWord(wordsInput, STRANGE_LINKS);
     }
@@ -125,14 +148,17 @@ public class ContainFeaturesCheck {
     public static int containsWord(String wordsInput, String[] patterns) {
         if (wordsInput == null || wordsInput.isBlank() || patterns == null || patterns.length == 0) return 0;
         String wordsLowerCase = wordsInput.toLowerCase();
+        int count = 0;
         for (String pattern : patterns) {
             if (pattern == null || pattern.isBlank()) continue;
             String p = pattern.toLowerCase();
             if (wordsLowerCase.contains(p)) {
-                return 1;
+                count++;
             }
         }
-        return 0;
+        if (count == 0) return 0;
+        if (count <= 2) return 1;
+        return 2;
     }
 
     // Hàm kiểm tra điều kiện chữ in hoa
@@ -145,17 +171,18 @@ public class ContainFeaturesCheck {
                 upperCount++;
             }
         }
-        return (upperCount >= 453) ? 1 : 0;
+        if (upperCount < 100) return 0;
+        if (upperCount <= 453) return 1;
+        return 2;
     }
 
     // Hàm kiểm tra nội dung email dài bao nhiêu
     public static int howLongDescription(String wordsInput){
         if (wordsInput == null || wordsInput.isEmpty()) return 0;
         int textLength = wordsInput.split("\\s+").length;
-        if (textLength > 138) {
-            return 1;
-        }
-        return 0;
+        if (textLength < 50) return 0;
+        if (textLength <= 138) return 1;
+        return 2;
     }
 
     // Hàm kiểm tra điều kiện chứa kí tự đặc biệt
@@ -170,6 +197,8 @@ public class ContainFeaturesCheck {
                 }
             }
         }
-        return (specialCharCount >= 23) ? 1 : 0;
+        if (specialCharCount < 10) return 0;
+        if (specialCharCount <= 23) return 1;
+        return 2;
     }
 }

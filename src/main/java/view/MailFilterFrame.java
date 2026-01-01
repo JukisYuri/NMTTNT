@@ -15,7 +15,7 @@ import model.EmailResult;
 import java.util.List;
 
 public class MailFilterFrame extends Application {
-
+    private static Button submitBtn;
     private SpamController controller;
     private TextArea bulkInputArea;
     private TableView<EmailResult> spamTable;
@@ -41,7 +41,7 @@ public class MailFilterFrame extends Application {
         bulkInputArea.setPrefHeight(150);
         bulkInputArea.setWrapText(true);
 
-        Button submitBtn = new Button("KIỂM TRA HÀNG LOẠT (SUBMIT)");
+        submitBtn = new Button("KIỂM TRA HÀNG LOẠT (SUBMIT)");
         submitBtn.setStyle("-fx-base: #2196F3; -fx-text-fill: white; -fx-font-weight: bold;");
         submitBtn.setPrefWidth(250);
 
@@ -139,19 +139,52 @@ public class MailFilterFrame extends Application {
             return;
         }
 
-        List<EmailResult> results = controller.processBulkEmails(input);
-
-        spamTable.getItems().clear();
-        hamTable.getItems().clear();
-        reasonArea.clear();
-
-        for (EmailResult res : results) {
-            if ("spam".equalsIgnoreCase(res.getLabel())) {
-                spamTable.getItems().add(res);
-            } else {
-                hamTable.getItems().add(res);
+        // --- SỬA ĐỔI: Dùng Task để xử lý đa luồng ---
+        javafx.concurrent.Task<List<EmailResult>> task = new javafx.concurrent.Task<>() {
+            @Override
+            protected List<EmailResult> call() throws Exception {
+                // Logic nặng nề sẽ chạy ở đây, không làm đơ giao diện
+                return controller.processBulkEmails(input);
             }
-        }
+        };
+
+        // 1. Khóa giao diện khi đang chạy để tránh bấm nhiều lần
+        submitBtn.setDisable(true);
+        bulkInputArea.setDisable(true);
+        reasonArea.setText("Đang phân tích dữ liệu, vui lòng đợi...");
+
+        // 2. Khi chạy xong thành công (Succeeded)
+        task.setOnSucceeded(e -> {
+            List<EmailResult> results = task.getValue(); // Lấy kết quả về
+
+            spamTable.getItems().clear();
+            hamTable.getItems().clear();
+
+            for (EmailResult res : results) {
+                if ("spam".equalsIgnoreCase(res.getLabel())) {
+                    spamTable.getItems().add(res);
+                } else {
+                    hamTable.getItems().add(res);
+                }
+            }
+
+            // Mở lại giao diện
+            submitBtn.setDisable(false);
+            bulkInputArea.setDisable(false);
+            reasonArea.setText("Đã xử lý xong " + results.size() + " email");
+        });
+
+        // 3. Khi gặp lỗi (Failed)
+        task.setOnFailed(e -> {
+            submitBtn.setDisable(false);
+            bulkInputArea.setDisable(false);
+            Throwable error = task.getException();
+            reasonArea.setText("Lỗi: " + error.getMessage());
+            error.printStackTrace(); // In lỗi ra console để debug
+        });
+
+        // 4. Bắt đầu chạy luồng
+        new Thread(task).start();
     }
 
     private void clearAll() {
@@ -160,8 +193,4 @@ public class MailFilterFrame extends Application {
         hamTable.getItems().clear();
         reasonArea.clear();
     }
-
-    // Các phương thức cũ (setResultText, setReasonText) có thể xóa hoặc giữ nếu cần tương thích
-    public void setResultText(String text) {}
-    public void setReasonText(String text) { reasonArea.setText(text); }
 }
