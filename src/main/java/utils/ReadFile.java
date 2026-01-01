@@ -96,14 +96,15 @@ public class ReadFile {
         int featureScamFraudWords = ContainFeaturesCheck.containsScamFraudWords(text);
         int featureMarketingWords = ContainFeaturesCheck.containsMarketingWords(text);
         int featureHealthWords = ContainFeaturesCheck.containsHealthWords(text);
+        int featureSecurityWords = ContainFeaturesCheck.containSecurityWords(text);
         int featureStrangeLink     = ContainFeaturesCheck.containsStrangeLink(text);
         int featureUpperCase       = ContainFeaturesCheck.containsUpperCase(text);
         int featureSpecialChar     = ContainFeaturesCheck.containsSpecialChar(text);
         int featureLongDesc        = ContainFeaturesCheck.howLongDescription(text);
         if (isSpam != null) {
-            return new EmailData(featureUrgencyWords, featureMoneyWords, featureScamFraudWords, featureMarketingWords, featureHealthWords, featureStrangeLink, featureUpperCase, featureLongDesc, featureSpecialChar, isSpam);
+            return new EmailData(featureUrgencyWords, featureMoneyWords, featureScamFraudWords, featureMarketingWords, featureHealthWords, featureSecurityWords, featureStrangeLink, featureUpperCase, featureLongDesc, featureSpecialChar, isSpam);
         } else {
-            return new EmailData(featureUrgencyWords, featureMoneyWords, featureScamFraudWords, featureMarketingWords, featureHealthWords, featureStrangeLink, featureUpperCase, featureLongDesc, featureSpecialChar);
+            return new EmailData(featureUrgencyWords, featureMoneyWords, featureScamFraudWords, featureMarketingWords, featureHealthWords, featureSecurityWords, featureStrangeLink, featureUpperCase, featureLongDesc, featureSpecialChar);
         }
     }
 

@@ -2,157 +2,195 @@ package view;
 
 import controller.SpamController;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import model.DecisionTree;
+import model.EmailResult;
+import java.util.List;
 
 public class MailFilterFrame extends Application {
-
-    private Label resultLabel;
-    private TextArea reasonArea;
-    private TextField subjectField;
-    private TextArea contentArea;
+    private static Button submitBtn;
     private SpamController controller;
+    private TextArea bulkInputArea;
+    private TableView<EmailResult> spamTable;
+    private TableView<EmailResult> hamTable;
+    private TextArea reasonArea;
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("Mail Filter System");
+        primaryStage.setTitle("Hệ thống Phân loại Email Hàng loạt");
 
-        // Khởi tạo Controller và Model
+        // Khởi tạo Model & Controller
         DecisionTree model = new DecisionTree();
         controller = new SpamController(this, model);
         controller.initializeModelFromDataset();
 
-        // 1. Phần tiêu đề
-        Label subjectLabel = new Label("Tiêu đề (Subject):");
-        subjectLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
-        subjectField = new TextField();
-        subjectField.setPromptText("Nhập tiêu đề mail...");
+        // --- 1. KHU VỰC NHẬP LIỆU (TOP) ---
+        VBox inputSection = new VBox(10);
+        Label inputLabel = new Label("Nhập nội dung các Email (Phân cách bằng 3 lần xuống dòng):");
+        inputLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
 
-        // 2. Phần nội dung
-        Label contentLabel = new Label("Nội dung (Content):");
-        contentLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
-        contentArea = new TextArea();
-        contentArea.setPromptText("Nhập nội dung mail cần kiểm tra...");
-        contentArea.setWrapText(true);
+        bulkInputArea = new TextArea();
+        bulkInputArea.setPromptText("Email 1...\n\n\nEmail 2...\n\n\nEmail 3...");
+        bulkInputArea.setPrefHeight(150);
+        bulkInputArea.setWrapText(true);
 
-        // 3. Các nút bấm
-        Button submitBtn = new Button("Kiểm tra (Submit)");
-        submitBtn.setStyle("-fx-base: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;");
-        submitBtn.setPrefWidth(120);
+        submitBtn = new Button("KIỂM TRA HÀNG LOẠT (SUBMIT)");
+        submitBtn.setStyle("-fx-base: #2196F3; -fx-text-fill: white; -fx-font-weight: bold;");
+        submitBtn.setPrefWidth(250);
 
-        Button clearBtn = new Button("Xóa (Clear)");
-        clearBtn.setPrefWidth(100);
+        Button clearBtn = new Button("Xóa tất cả");
 
-        // 4. Phần kết quả
-        Label resultTitleLabel = new Label("Kết quả phân tích:");
-        resultTitleLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
+        HBox actionBox = new HBox(15, submitBtn, clearBtn);
+        actionBox.setAlignment(Pos.CENTER_LEFT);
 
-        this.resultLabel = new Label("waiting...");
-        this.resultLabel.setStyle("-fx-background-color: #e0e0e0; -fx-padding: 5px 10px; -fx-background-radius: 5px;");
-        this.resultLabel.setTextFill(Color.DARKGRAY);
+        inputSection.getChildren().addAll(inputLabel, bulkInputArea, actionBox);
 
-        Label reasonLabel = new Label("Chi tiết (Reason):");
-        reasonLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
+        // --- 2. KHU VỰC BẢNG KẾT QUẢ (CENTER) ---
+        HBox tablesBox = new HBox(15);
+        VBox.setVgrow(tablesBox, Priority.ALWAYS);
 
-        this.reasonArea = new TextArea();
-        this.reasonArea.setEditable(false);
-        this.reasonArea.setWrapText(true);
-        this.reasonArea.setPromptText("Lý do hoặc xác suất sẽ hiện ở đây...");
-        this.reasonArea.setPrefRowCount(3);
+        spamTable = createTable("DANH SÁCH SPAM (NGUY HIỂM)", "#ffebee");
+        hamTable = createTable("DANH SÁCH HAM (HỢP LỆ)", "#e8f5e9");
 
-        GridPane grid = new GridPane();
-        grid.setVgap(15);
-        grid.setHgap(15);
-        grid.setPadding(new Insets(20));
-        grid.setStyle("-fx-background-color: #f4f4f4;");
+        HBox.setHgrow(spamTable, Priority.ALWAYS);
+        HBox.setHgrow(hamTable, Priority.ALWAYS);
+        tablesBox.getChildren().addAll(spamTable, hamTable);
 
-        grid.add(subjectLabel, 0, 0);
-        grid.add(subjectField, 1, 0);
+        // --- 3. KHU VỰC CHI TIẾT (BOTTOM) ---
+        VBox detailSection = new VBox(10);
+        Label detailLabel = new Label("Chi tiết phân tích (Reason Trace):");
+        detailLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
 
-        grid.add(contentLabel, 0, 1);
-        grid.add(contentArea, 1, 1);
-        GridPane.setValignment(contentLabel, VPos.TOP);
-        GridPane.setVgrow(contentArea, Priority.ALWAYS);
+        reasonArea = new TextArea();
+        reasonArea.setEditable(false);
+        reasonArea.setPrefHeight(120);
+        reasonArea.setPromptText("Chọn một email từ bảng trên để xem lý do phân loại...");
+        reasonArea.setStyle("-fx-control-inner-background: #fdfdfd;");
 
-        HBox buttons = new HBox(10, submitBtn, clearBtn);
-        buttons.setAlignment(Pos.CENTER_LEFT);
-        grid.add(buttons, 1, 2);
+        detailSection.getChildren().addAll(detailLabel, reasonArea);
 
-        Separator separator = new Separator();
-        grid.add(separator, 0, 3, 2, 1);
+        // --- THIẾT LẬP LAYOUT CHÍNH ---
+        VBox mainLayout = new VBox(20);
+        mainLayout.setPadding(new Insets(20));
+        mainLayout.setStyle("-fx-background-color: #f5f5f5;");
+        mainLayout.getChildren().addAll(inputSection, tablesBox, detailSection);
 
-        HBox resultBox = new HBox(10, resultTitleLabel, this.resultLabel);
-        resultBox.setAlignment(Pos.CENTER_LEFT);
-        grid.add(resultBox, 0, 4, 2, 1);
+        // --- XỬ LÝ SỰ KIỆN ---
+        submitBtn.setOnAction(e -> handleBulkProcess());
+        clearBtn.setOnAction(e -> clearAll());
 
-        grid.add(reasonLabel, 0, 5);
-        grid.add(this.reasonArea, 1, 5);
-        GridPane.setValignment(reasonLabel, VPos.TOP);
+        // Lắng nghe sự kiện chọn dòng trên bảng để hiện Reason
+        setupSelectionListener(spamTable);
+        setupSelectionListener(hamTable);
 
-        ColumnConstraints col1 = new ColumnConstraints();
-        col1.setMinWidth(120);
-
-        ColumnConstraints col2 = new ColumnConstraints();
-        col2.setHgrow(Priority.ALWAYS);
-
-        grid.getColumnConstraints().addAll(col1, col2);
-
-        // xử lí sự kiện
-        submitBtn.setOnAction(e -> {
-            String subject = subjectField.getText();
-            String content = contentArea.getText();
-            if(subject.isEmpty() && content.isEmpty()){
-                Alert alert = new Alert(Alert.AlertType.WARNING, "Vui lòng nhập nội dung!");
-                alert.show();
-                return;
-            }
-            controller.checkEmailAndUpdateView(subject, content);
-        });
-
-        clearBtn.setOnAction(e -> {
-            subjectField.clear();
-            contentArea.clear();
-            this.resultLabel.setText("waiting...");
-            this.resultLabel.setTextFill(Color.DARKGRAY);
-            this.reasonArea.clear();
-        });
-
-        Scene scene = new Scene(grid, 750, 600);
+        Scene scene = new Scene(mainLayout, 1000, 750);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
-    public void setResultText(String text) {
-        if (resultLabel != null) {
-            Platform.runLater(() -> {
-                resultLabel.setText(text.toUpperCase());
-                if (text.toLowerCase().contains("spam")) {
-                    resultLabel.setTextFill(Color.WHITE);
-                    resultLabel.setStyle("-fx-background-color: #e53935; -fx-padding: 5px 10px; -fx-background-radius: 5px; -fx-font-weight: bold;");
-                } else if (text.toLowerCase().contains("ham")) {
-                    resultLabel.setTextFill(Color.WHITE);
-                    resultLabel.setStyle("-fx-background-color: #43A047; -fx-padding: 5px 10px; -fx-background-radius: 5px; -fx-font-weight: bold;");
+    private TableView<EmailResult> createTable(String title, String bgColor) {
+        TableView<EmailResult> table = new TableView<>();
+        table.setStyle("-fx-background-color: " + bgColor + ";");
+
+        TableColumn<EmailResult, String> contentCol = new TableColumn<>(title);
+        contentCol.setCellValueFactory(cellData -> cellData.getValue().contentProperty());
+
+        // Custom hiển thị để không bị tràn text quá dài
+        contentCol.setCellFactory(tc -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
                 } else {
-                    resultLabel.setTextFill(Color.DARKBLUE);
-                    resultLabel.setStyle("-fx-background-color: #e0e0e0; -fx-padding: 5px 10px; -fx-background-radius: 5px;");
+                    setText(item.replace("\n", " ").substring(0, Math.min(item.length(), 80)) + "...");
                 }
-            });
-        }
+            }
+        });
+
+        table.getColumns().add(contentCol);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        return table;
     }
 
-    public void setReasonText(String text) {
-        if (reasonArea != null) {
-            Platform.runLater(() -> reasonArea.setText(text));
+    private void setupSelectionListener(TableView<EmailResult> table) {
+        table.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                // Xóa chọn ở bảng kia để tránh nhầm lẫn
+                if (table == spamTable) hamTable.getSelectionModel().clearSelection();
+                else spamTable.getSelectionModel().clearSelection();
+
+                reasonArea.setText(newSelection.getReason());
+            }
+        });
+    }
+
+    private void handleBulkProcess() {
+        String input = bulkInputArea.getText();
+        if (input.trim().isEmpty()) {
+            new Alert(Alert.AlertType.WARNING, "Vui lòng nhập nội dung!").show();
+            return;
         }
+
+        // --- SỬA ĐỔI: Dùng Task để xử lý đa luồng ---
+        javafx.concurrent.Task<List<EmailResult>> task = new javafx.concurrent.Task<>() {
+            @Override
+            protected List<EmailResult> call() throws Exception {
+                // Logic nặng nề sẽ chạy ở đây, không làm đơ giao diện
+                return controller.processBulkEmails(input);
+            }
+        };
+
+        // 1. Khóa giao diện khi đang chạy để tránh bấm nhiều lần
+        submitBtn.setDisable(true);
+        bulkInputArea.setDisable(true);
+        reasonArea.setText("Đang phân tích dữ liệu, vui lòng đợi...");
+
+        // 2. Khi chạy xong thành công (Succeeded)
+        task.setOnSucceeded(e -> {
+            List<EmailResult> results = task.getValue(); // Lấy kết quả về
+
+            spamTable.getItems().clear();
+            hamTable.getItems().clear();
+
+            for (EmailResult res : results) {
+                if ("spam".equalsIgnoreCase(res.getLabel())) {
+                    spamTable.getItems().add(res);
+                } else {
+                    hamTable.getItems().add(res);
+                }
+            }
+
+            // Mở lại giao diện
+            submitBtn.setDisable(false);
+            bulkInputArea.setDisable(false);
+            reasonArea.setText("Đã xử lý xong " + results.size() + " email");
+        });
+
+        // 3. Khi gặp lỗi (Failed)
+        task.setOnFailed(e -> {
+            submitBtn.setDisable(false);
+            bulkInputArea.setDisable(false);
+            Throwable error = task.getException();
+            reasonArea.setText("Lỗi: " + error.getMessage());
+            error.printStackTrace(); // In lỗi ra console để debug
+        });
+
+        // 4. Bắt đầu chạy luồng
+        new Thread(task).start();
+    }
+
+    private void clearAll() {
+        bulkInputArea.clear();
+        spamTable.getItems().clear();
+        hamTable.getItems().clear();
+        reasonArea.clear();
     }
 }
