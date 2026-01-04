@@ -100,25 +100,8 @@ public class ContainFeaturesCheck {
     };
     // NHÓM 6: SECURITY PHISHING & FAKE ALERTS (Giả mạo cảnh báo bảo mật)
     public static final String[] SECURITY_WORDS = {
-            "account access", "account blocked", "account disabled", "account expired",
-            "account limited", "account locked", "account review", "account suspended",
-            "account theft", "account validation", "account verification", "action required",
-            "activate your account", "attempt to login", "authentication required",
-            "authorize payment", "bank account", "billing error", "billing problem",
-            "change of address", "change your password", "check activity", "click to restore",
-            "confirm identity", "confirm password", "confirm your account", "credit card declined",
-            "deactivation notice", "device verification", "failed login", "fraud alert",
-            "identity theft", "identity verification", "invalid login", "locked out",
-            "login attempt", "login from new device", "login reminder", "new sign-in",
-            "password expiration", "password expiry", "payment declined", "protect your account",
-            "reactivate account", "reset your password", "restore access", "secure center",
-            "secure message", "security alert", "security check", "security measure",
-            "security notification", "security reason", "security warning", "sign-in attempt",
-            "suspicious activity", "suspicious login", "suspicious sign-in", "unauthorized access",
-            "unauthorized login", "unlock account", "unusual activity", "unusual login",
-            "update billing", "update payment", "update your information", "validate account",
-            "verify account", "verify identity", "verify now", "verify your email",
-            "verify your identity", "wallet security", "your account is at risk"
+            "account", "verify", "security", "suspended", "locked",
+            "unauthorized", "login", "password", "alert", "notification"
     };
     public static final String[] STRANGE_LINKS = {
             "http://", "https://", "www",

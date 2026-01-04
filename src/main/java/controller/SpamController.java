@@ -10,6 +10,7 @@ import view.MailFilterFrame;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class SpamController {
@@ -27,10 +28,17 @@ public class SpamController {
     public void initializeModelFromDataset() {
         ReadFile rf = new ReadFile();
         try {
-            rf.readFromPath();
+            rf.readFromPath("src/main/java/datasets/spam_assassin.csv");
+            rf.readFromPath("src/main/java/datasets/SpamAssasin.csv");
 
             List<EmailData> dataList = rf.getDataList();
             System.out.println("Dataset size: " + dataList.size());
+
+            Collections.shuffle(dataList); // Xáo trộn dữ liệu
+            // Chia dữ liệu theo tỷ lệ 80/20
+            int trainSize = (int) (dataList.size() * 0.8);
+            List<EmailData> trainData = dataList.subList(0, trainSize);
+            List<EmailData> testData = dataList.subList(trainSize, dataList.size());
 
             List<String> attributes = Arrays.asList(
                     "urgencyWords",
@@ -45,12 +53,33 @@ public class SpamController {
                     "specialChar"
             );
 
-            Node root = model.buildTree(dataList, attributes);
+            Node root = model.buildTree(trainData, attributes);
             model.setRoot(root);
+            calculateAccuracy(testData);
             System.out.println("Model đã được khởi tạo thành công!");
         } catch (IOException e) {
             throw new RuntimeException("Không đọc được dataset" + e.getMessage(), e);
         }
+    }
+
+    private void calculateAccuracy(List<EmailData> testData) {
+        int correctPredictions = 0;
+        for (EmailData email : testData) {
+            String prediction = model.classify(email);
+            boolean isSpamActual = email.getSpam();
+
+            if (("spam".equalsIgnoreCase(prediction) && isSpamActual) ||
+                    ("ham".equalsIgnoreCase(prediction) && !isSpamActual)) {
+                correctPredictions++;
+            }
+        }
+
+        double accuracy = (double) correctPredictions / testData.size() * 100;
+        System.out.println("==== KẾT QUẢ ĐÁNH GIÁ MODEL ====");
+        System.out.println("Tổng mẫu test: " + testData.size());
+        System.out.println("Số câu đoán đúng: " + correctPredictions);
+        System.out.format("Độ chính xác: %.2f%%\n", accuracy);
+        System.out.println("================================");
     }
 
     public List<EmailResult> processBulkEmails(String rawInput) {
