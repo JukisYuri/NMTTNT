@@ -139,11 +139,10 @@ public class MailFilterFrame extends Application {
             return;
         }
 
-        // --- SỬA ĐỔI: Dùng Task để xử lý đa luồng ---
+        // --- Dùng Task để xử lý đa luồng ---
         javafx.concurrent.Task<List<EmailResult>> task = new javafx.concurrent.Task<>() {
             @Override
             protected List<EmailResult> call() throws Exception {
-                // Logic nặng nề sẽ chạy ở đây, không làm đơ giao diện
                 return controller.processBulkEmails(input);
             }
         };

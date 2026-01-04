@@ -14,45 +14,55 @@ import java.util.List;
  * Đọc file CSV sử dụng Apache Commons CSV
  */
 public class ReadFile {
-    String path = "src/main/java/datasets/spam_assassin.csv";
     List<EmailData> dataList = new ArrayList<>();
-
+    String path;
     /**
      * Đọc file CSV theo đường dẫn truyền vào.
      */
-    public void readFromPath() throws IOException {
-        if (path == null || path.isBlank()) {
+    public void readFromPath(String filePath) throws IOException {
+        if (filePath == null || filePath.isBlank()) {
             throw new IllegalArgumentException("The file path is null or empty.");
         }
-        File file = new File(path);
+        this.path = filePath;
+        File file = new File(filePath);
         if (!file.exists() || !file.isFile()) {
-            throw new FileNotFoundException("The file does not exist or is not a valid file: " + path);
+            throw new FileNotFoundException("The file does not exist or is not a valid file: " + filePath);
         }
-        dataList.clear();
-        try (Reader reader = new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8)) {
+        try (Reader reader = new InputStreamReader(new FileInputStream(filePath), StandardCharsets.UTF_8)) {
             CSVParser parser = CSVFormat.DEFAULT
                     .withFirstRecordAsHeader()
                     .withIgnoreSurroundingSpaces()
                     .withTrim()
                     .parse(reader);
 
-            boolean hasHeaderText = parser.getHeaderMap().containsKey("text");
             boolean hasHeaderTarget = parser.getHeaderMap().containsKey("target") || parser.getHeaderMap().containsKey("label");
 
             for (CSVRecord record : parser) {
-                String rawText;
-                String rawTarget;
+                String rawText = "";
 
-                if (hasHeaderText) {
-                    rawText = safeGet(record, "text");
-                } else if (parser.getHeaderMap().containsKey("content")) {
-                    rawText = safeGet(record, "content");
-                } else if (parser.getHeaderMap().containsKey("message")) {
-                    rawText = safeGet(record, "message");
-                } else {
-                    rawText = record.size() > 0 ? record.get(0) : "";
+                if (parser.getHeaderMap().containsKey("subject")) {
+                    String subject = safeGet(record, "subject");
+                    if (subject != null && !subject.isBlank()) {
+                        rawText += subject + " ";
+                    }
                 }
 
+                if (parser.getHeaderMap().containsKey("body")) {
+                    rawText += safeGet(record, "body");
+                } else if (parser.getHeaderMap().containsKey("text")) {
+                    rawText += safeGet(record, "text");
+                } else if (parser.getHeaderMap().containsKey("content")) {
+                    rawText += safeGet(record, "content");
+                } else if (parser.getHeaderMap().containsKey("message")) {
+                    rawText += safeGet(record, "message");
+                } else {
+                    if (rawText.trim().isEmpty() && record.size() > 0) {
+                        rawText = record.get(0);
+                    }
+                }
+                // ---------------------------------------------
+
+                String rawTarget;
                 if (hasHeaderTarget) {
                     if (parser.getHeaderMap().containsKey("target")) {
                         rawTarget = safeGet(record, "target");
@@ -126,9 +136,24 @@ public class ReadFile {
 
     public static void main(String[] args) throws IOException {
         ReadFile rf = new ReadFile();
-        rf.readFromPath();
-        System.out.println("Đọc được " + rf.getDataList().size() + " bản ghi.");
-        int limit = Math.min(50, rf.getDataList().size());
+        rf.readFromPath("src/main/java/datasets/spam_assassin.csv");
+        rf.readFromPath("src/main/java/datasets/SpamAssasin.csv");
+        List<EmailData> list = rf.getDataList();
+        int spamCount = 0;
+        int hamCount = 0;
+
+        for (EmailData email : list) {
+            if (Boolean.TRUE.equals(email.getSpam())) {
+                spamCount++;
+            } else {
+                hamCount++;
+            }
+        }
+
+        System.out.println("Tổng số email: " + list.size());
+        System.out.println("Số lượng SPAM: " + spamCount);
+        System.out.println("Số lượng HAM:  " + hamCount);
+        int limit = Math.min(5, rf.getDataList().size());
         for (int i = 0; i < limit; i++) {
             System.out.println(rf.getDataList().get(i));
         }

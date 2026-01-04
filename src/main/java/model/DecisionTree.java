@@ -10,7 +10,6 @@ public class DecisionTree {
     private static final String RED = "\u001B[31m";
     private static final String GREEN = "\u001B[32m";
     private static final String YELLOW = "\u001B[33m";
-    private static final String BLUE = "\u001B[34m";
     private static final String PURPLE = "\u001B[35m";
     private static final String CYAN = "\u001B[36m";
     private static final String BOLD = "\u001B[1m";
@@ -133,6 +132,13 @@ public class DecisionTree {
             return node;
         }
 
+        if (data.size() < 20) { // Dùng pre-pruning, vì nếu đi vào nhánh mà có size bé quá thì dừng
+            node.setLeaf(true);
+            node.setLabel(getMajorityLabel(data));
+            calculateAndSetStats(node, data);
+            return node;
+        }
+
         String bestAttribute = null;
         double maxInfoGain = -1.0;
 
@@ -247,7 +253,6 @@ public class DecisionTree {
         int step = 1;
         // Duyệt từ gốc đến lá
         while (!current.isLeaf()) {
-            // Lấy giá trị thuộc tính 0/1 trong email
             String attr = current.getSplitAttribute();
             int value = email.getAttributeValue(attr);
             String attrNameVN = getAttributeNameVN(attr);
@@ -316,18 +321,18 @@ public class DecisionTree {
     }
 
     private String getAttributeNameVN(String attribute) {
-        if (attribute == null) return "Unknown";
+        if (attribute == null) return "Không xác định";
         return switch (attribute) {
-            case "urgencyWords" -> "Từ ngữ khẩn cấp";
-            case "moneyWords" -> "Từ ngữ tiền tệ";
-            case "scamFraudWords" -> "Từ ngữ lừa đảo, gian lận";
-            case "marketingWords" -> "Từ ngữ quảng cáo/tiếp thị";
-            case "healthWords" -> "Từ ngữ sức khoẻ, liên quan y tế";
-            case "securityWords" -> "Từ ngữ giả mạo bảo mật";
-            case "strangeLink" -> "Đường dẫn (link) lạ";
-            case "upperCase" -> "Quá nhiều chữ in hoa";
-            case "longDescription" -> "Nội dung quá dài";
-            case "specialChar" -> "Nhiều ký tự đặc biệt";
+            case "urgencyWords"    -> "Mức độ thúc giục, tạo áp lực";
+            case "moneyWords"      -> "Đề cập đến tiền bạc, tài chính";
+            case "scamFraudWords"  -> "Dấu hiệu hứa hẹn, lừa đảo";
+            case "marketingWords"  -> "Nội dung chào mời, quảng bá";
+            case "healthWords"     -> "Chủ đề sức khỏe, y tế nhạy cảm";
+            case "securityWords"   -> "Cảnh báo bảo mật đáng nghi";
+            case "strangeLink"     -> "Liên kết (link) không rõ nguồn gốc";
+            case "upperCase"       -> "Tỷ lệ viết hoa bất thường";
+            case "longDescription" -> "Độ dài nội dung văn bản";
+            case "specialChar"     -> "Sử dụng ký tự đặc biệt quá mức";
             default -> attribute;
         };
     }
