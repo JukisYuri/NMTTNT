@@ -80,9 +80,9 @@ public class DecisionTree {
         // Tính weighted entropy sau khi chia
         int totalDataSize = data.size();
         double weightedEntropy =
-                (lowSet.size() / totalDataSize) * entropy_Low
-                        + (midSet.size() / totalDataSize) * entropy_Medium
-                        + (highSet.size() / totalDataSize) * entropy_High;
+                ((double) lowSet.size() / totalDataSize) * entropy_Low
+                        + ((double) midSet.size() / totalDataSize) * entropy_Medium
+                        + ((double) highSet.size() / totalDataSize) * entropy_High;
 
         // Information Gain = H(s) - H(sau chia)
         return calculateEntropy - weightedEntropy;
