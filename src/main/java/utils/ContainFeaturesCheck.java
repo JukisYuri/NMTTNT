@@ -4,8 +4,8 @@ public class ContainFeaturesCheck {
     // NHÓM 1: URGENCY & PRESSURE
     public static final String[] URGENCY_WORDS = {
             "act", "act fast", "act immediately", "act now", "act now!", "action",
-            "action required", "apply here", "apply now", "apply online", "before it’s too late",
-            "call", "call free", "call now", "call now!", "can’t miss", "click", "click below",
+            "action required", "apply here", "apply now", "apply online", "before it's too late",
+            "call", "call free", "call now", "call now!", "can't miss", "click", "click below",
             "click here", "click me", "click now", "click to get", "click to verify",
             "contact us immediately", "deal ending soon", "do it now", "do it today",
             "don’t delete", "don’t hesitate", "don’t waste time", "expire", "expires today",
