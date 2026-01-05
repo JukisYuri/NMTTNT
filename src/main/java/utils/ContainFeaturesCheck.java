@@ -8,7 +8,7 @@ public class ContainFeaturesCheck {
             "call", "call free", "call now", "call now!", "can't miss", "click", "click below",
             "click here", "click me", "click now", "click to get", "click to verify",
             "contact us immediately", "deal ending soon", "do it now", "do it today",
-            "don’t delete", "don’t hesitate", "don’t waste time", "expire", "expires today",
+            "don't delete", "don't hesitate", "don't waste time", "expire", "expires today",
             "final call", "final notice", "for instant access", "get it away", "get it now",
             "get now", "get started", "get started now", "hurry up", "immediate action required",
             "immediately", "important information", "important update", "instant", "instant access",
