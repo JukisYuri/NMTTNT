@@ -4,17 +4,17 @@ public class ContainFeaturesCheck {
     // NHÓM 1: URGENCY & PRESSURE
     public static final String[] URGENCY_WORDS = {
             "act", "act fast", "act immediately", "act now", "act now!", "action",
-            "action required", "apply here", "apply now", "apply online", "before it’s too late",
-            "call", "call free", "call now", "call now!", "can’t miss", "click", "click below",
+            "action required", "apply here", "apply now", "apply online", "before it's too late",
+            "call", "call free", "call now", "call now!", "can't miss", "click", "click below",
             "click here", "click me", "click now", "click to get", "click to verify",
             "contact us immediately", "deal ending soon", "do it now", "do it today",
-            "don’t delete", "don’t hesitate", "don’t waste time", "expire", "expires today",
+            "don't delete", "don't hesitate", "don't waste time", "expire", "expires today",
             "final call", "final notice", "for instant access", "get it away", "get it now",
             "get now", "get started", "get started now", "hurry up", "immediate action required",
             "immediately", "important information", "important update", "instant", "instant access",
             "last warning", "limited time", "now", "now only", "offer expires", "once in a lifetime",
             "only", "only a few left", "order now", "order today", "please read", "purchase now",
-            "supplies are limited", "take action", "take action now", "this won’t last",
+            "supplies are limited", "take action", "take action now", "this won't last",
             "time limited", "today", "top urgent", "urgent", "warning message",
             "what are you waiting for?", "while supplies last"
     };
