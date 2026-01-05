@@ -14,7 +14,7 @@ public class ContainFeaturesCheck {
             "immediately", "important information", "important update", "instant", "instant access",
             "last warning", "limited time", "now", "now only", "offer expires", "once in a lifetime",
             "only", "only a few left", "order now", "order today", "please read", "purchase now",
-            "supplies are limited", "take action", "take action now", "this won’t last",
+            "supplies are limited", "take action", "take action now", "this won't last",
             "time limited", "today", "top urgent", "urgent", "warning message",
             "what are you waiting for?", "while supplies last"
     };
