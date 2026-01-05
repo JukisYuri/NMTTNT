@@ -80,9 +80,9 @@ public class DecisionTree {
         // Tính weighted entropy sau khi chia
         int totalDataSize = data.size();
         double weightedEntropy =
-                (lowSet.size() / totalDataSize) * entropy_Low
-                        + (midSet.size() / totalDataSize) * entropy_Medium
-                        + (highSet.size() / totalDataSize) * entropy_High;
+                ((double) lowSet.size() / totalDataSize) * entropy_Low
+                        + ((double) midSet.size() / totalDataSize) * entropy_Medium
+                        + ((double) highSet.size() / totalDataSize) * entropy_High;
 
         // Information Gain = H(s) - H(sau chia)
         return calculateEntropy - weightedEntropy;
@@ -167,7 +167,7 @@ public class DecisionTree {
         }
 
         node.setLeaf(false);
-        node.setSplitAttribute(bestAttribute);
+        node.setSplitAttribute(bestAttribute); // Lưu các đặc trưng
 
         // Chia thành 3 tập con
         List<EmailData> lowSet = new ArrayList<>();
@@ -222,7 +222,7 @@ public class DecisionTree {
     /* Phân loại một EmailData bằng cây đã xây dựng */
     public String classify(EmailData email) {
         Node current = root;
-        while (!current.isLeaf()) { // lí do cho setLeaf là true để thực hiện vòng lặp này
+        while (!current.isLeaf()) {
             String attr = current.getSplitAttribute();
             int value = email.getAttributeValue(attr);
             current = switch (value) {
